@@ -18,11 +18,13 @@ st.set_page_config(
 if os.path.exists(".env"):
     load_dotenv()
 
-# Inicializa o cliente OpenAI de forma mais simples
+# Inicializa o cliente OpenAI usando explicitamente os secrets do Streamlit
 try:
-    client = OpenAI()  # Vai usar automaticamente a variável de ambiente OPENAI_API_KEY
+    api_key = st.secrets["OPENAI_API_KEY"]
+    client = OpenAI(api_key=api_key)
 except Exception as e:
-    st.error(f"Erro ao inicializar OpenAI: {e}")
+    st.error(f"Erro ao inicializar OpenAI: {str(e)}")
+    st.error("Verifique se a chave da API está configurada corretamente nos secrets do Streamlit Cloud.")
     st.stop()
 
 db = ReceitasDB()
