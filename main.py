@@ -21,6 +21,15 @@ if os.path.exists(".env"):
 # Inicializa o cliente OpenAI usando explicitamente os secrets do Streamlit
 try:
     api_key = st.secrets["OPENAI_API_KEY"]
+    # Remove qualquer espaço em branco extra
+    api_key = api_key.strip()
+    
+    # Verifica se a chave tem o formato correto
+    if not api_key.startswith("sk-"):
+        st.error("A chave da API OpenAI deve começar com 'sk-'")
+        st.error("Por favor, verifique se você está usando uma chave válida da OpenAI.")
+        st.stop()
+        
     client = OpenAI(api_key=api_key)
 except Exception as e:
     st.error(f"Erro ao inicializar OpenAI: {str(e)}")
