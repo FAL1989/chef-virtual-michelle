@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from database import ReceitasDB
 import json
 from datetime import datetime
+import httpx
 
 # Configuração da página
 st.set_page_config(
@@ -18,9 +19,18 @@ st.set_page_config(
 if os.path.exists(".env"):
     load_dotenv()
 
-# Inicializa o cliente OpenAI
+# Inicializa o cliente OpenAI com configuração HTTP personalizada
 try:
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    http_client = httpx.Client(
+        base_url="https://api.openai.com/v1",
+        follow_redirects=True,
+        timeout=60.0
+    )
+    
+    client = OpenAI(
+        api_key=st.secrets["OPENAI_API_KEY"],
+        http_client=http_client
+    )
 except Exception as e:
     st.error(f"Erro ao inicializar OpenAI: {str(e)}")
     st.stop()
