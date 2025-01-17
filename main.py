@@ -29,8 +29,14 @@ try:
         st.error("A chave da API OpenAI deve começar com 'sk-'")
         st.error("Por favor, verifique se você está usando uma chave válida da OpenAI.")
         st.stop()
-        
-    client = OpenAI(api_key=api_key)
+    
+    # Inicializa o cliente OpenAI com configurações básicas
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.openai.com/v1",
+        timeout=60.0,
+        max_retries=2
+    )
 except Exception as e:
     st.error(f"Erro ao inicializar OpenAI: {str(e)}")
     st.error("Verifique se a chave da API está configurada corretamente nos secrets do Streamlit Cloud.")
