@@ -1,0 +1,1311 @@
+[
+  {
+    "titulo": "GRANOLA SALGADA",
+    "arquivo_fonte": "Apostila 6.docx",
+    "ingredientes": [
+      {
+        "item": "Azeite",
+        "quantidade": " (1 colher cheia de sopa)"
+      }
+    ],
+    "modo_preparo": [
+      "1",
+      "quebre as castanhas grosseiramente quebre as castanhas grosseiramente quebre as castanhas grosseiramente",
+      "2",
+      "em uma vasilha acrescente as sementes, castanhas e os temperos, misture bem",
+      "em uma vasilha acrescente as sementes, castanhas e os temperos, misture bem",
+      "em uma vasilha acrescente as sementes, castanhas e os temperos, misture bem"
+    ]
+  },
+  {
+    "titulo": "HOMUS DE GRÃO DE BICO",
+    "arquivo_fonte": "Apostila 6.docx",
+    "ingredientes": [
+      {
+        "item": "Grão de bico cozido",
+        "quantidade": "Grão de bico cozido (1 xicara)"
+      },
+      {
+        "item": "tahine",
+        "quantidade": "tahine (1 colher de sopa cheia)"
+      },
+      {
+        "item": "Alho",
+        "quantidade": "Alho (½ dente)"
+      },
+      {
+        "item": "limão",
+        "quantidade": "limão (Suco de um limão)"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "Azeite (¼ xicara)"
+      },
+      {
+        "item": "Água do cozimento do grão de bico",
+        "quantidade": "Água do cozimento do grão de bico (¼ xicara)"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "Sal (A gosto)"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "CREME DE MILHO COM CEBOLAS CARAMELIZADAS",
+    "arquivo_fonte": "Apostila 6.docx",
+    "ingredientes": [
+      {
+        "item": "Milho verde",
+        "quantidade": "1 xicara"
+      },
+      {
+        "item": "leite",
+        "quantidade": "200ml"
+      },
+      {
+        "item": "alho",
+        "quantidade": "1 dente"
+      },
+      {
+        "item": "curcuma",
+        "quantidade": "½ colher de café"
+      },
+      {
+        "item": "curry",
+        "quantidade": "½ colher de café"
+      },
+      {
+        "item": "sal",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Cebola em fatias",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "azeite",
+        "quantidade": "1 colher"
+      },
+      {
+        "item": "shoyou",
+        "quantidade": "3 colheres"
+      },
+      {
+        "item": "Açúcar demerara",
+        "quantidade": "½ colher"
+      },
+      {
+        "item": "sal",
+        "quantidade": "1 pitada"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "MOLHO PESTO",
+    "arquivo_fonte": "Apostila 6.docx",
+    "ingredientes": [
+      {
+        "item": "Manjericão",
+        "quantidade": "2 xicaras"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "parmesão",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Alho",
+        "quantidade": "1 dente"
+      },
+      {
+        "item": "Castanha de caju torrada",
+        "quantidade": "¼ xicara"
+      },
+      {
+        "item": "sal",
+        "quantidade": "A gosto"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "BROCOLIS ASSADO",
+    "arquivo_fonte": "Apostila 6.docx",
+    "ingredientes": [
+      {
+        "item": "Brócolis",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "¼ xicara"
+      },
+      {
+        "item": "manteiga",
+        "quantidade": "1 colher"
+      },
+      {
+        "item": "Páprica defumada",
+        "quantidade": "2 colheres de café"
+      }
+    ],
+    "modo_preparo": [
+      "retire os floretes de brócolis leve a uma panela com água quente e sal",
+      "deixe cozinhar por cerca de 2 min, ele precisa estar ao dente em uma vasilha misture o azeite, páprica e sal, misture muito bem",
+      "tempere os brócolis com a mistura e leve para uma assadeira",
+      "leve ao forno pré aquecido a 180 graus por 15 min ou ate que esteja dourado",
+      "retire os floretes de brócolis leve a uma panela com água quente e sal",
+      "deixe cozinhar por cerca de 2 min, ele precisa estar ao dente em uma vasilha misture o azeite, páprica e sal, misture muito bem",
+      "tempere os brócolis com a mistura e leve para uma assadeira",
+      "leve ao forno pré aquecido a 180 graus por 15 min ou ate que esteja dourado",
+      "retire os floretes de brócolis leve a uma panela com água quente e sal",
+      "deixe cozinhar por cerca de 2 min, ele precisa estar ao dente em uma vasilha misture o azeite, páprica e sal, misture muito bem",
+      "tempere os brócolis com a mistura e leve para uma assadeira",
+      "leve ao forno pré aquecido a 180 graus por 15 min ou ate que esteja dourado"
+    ]
+  },
+  {
+    "titulo": "TORTA DE PALMITO",
+    "arquivo_fonte": "Apostila 6.docx",
+    "ingredientes": [
+      {
+        "item": "Grão de bico cozido",
+        "quantidade": "1 xicara"
+      },
+      {
+        "item": "Farinha de linhaça",
+        "quantidade": "¼ xicara"
+      },
+      {
+        "item": "Farinha de arroz",
+        "quantidade": "¼ xicara"
+      },
+      {
+        "item": "cúrcuma",
+        "quantidade": "½ colher de café"
+      },
+      {
+        "item": "manteiga",
+        "quantidade": "1 colher de sopa"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "A gosto"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "RECHEIO TORTA",
+    "arquivo_fonte": "Apostila 6.docx",
+    "ingredientes": [
+      {
+        "item": "Palmito",
+        "quantidade": "300g"
+      },
+      {
+        "item": "Tomate sem semente",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Alho",
+        "quantidade": "2 dentes"
+      },
+      {
+        "item": "Cúrcuma",
+        "quantidade": "½ colher de café"
+      },
+      {
+        "item": "Páprica defumada",
+        "quantidade": "½ colher de café"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Creme de leite",
+        "quantidade": "200"
+      },
+      {
+        "item": "ovo",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Desfie o palmito com o garfo, como se estivesse desfiando frango. Aqueça uma panela com azeite e o alho e refogue. Acrescente a páprica e a cúrcuma e em seguida o palmito e o tomate. Refogue mais um pouco mais não deixe a agua do tomate secar; CREME Misture o creme de leite com o ovo e o sal e bata como se estivesse fazendo um bolo. MONTAGEM Em uma forma de fundo removível espalhe toda a massa deixando a borda mais grossa. Faça furos no fundo e leve para assar por 10min. Retire do forno acrescente o recheio e em seguida o creme, Espalhe parmesão por cima do creme e volte ao forno por 20mim. Espere esfriar um pouco e já pode desinformar com cuidado.",
+        "quantidade": "Desfie o palmito com o garfo, como se estivesse desfiando frango. Aqueça uma panela com azeite e o alho e refogue. Acrescente a páprica e a cúrcuma e em seguida o palmito e o tomate. Refogue mais um pouco mais não deixe a agua do tomate secar; CREME Misture o creme de leite com o ovo e o sal e bata como se estivesse fazendo um bolo. MONTAGEM Em uma forma de fundo removível espalhe toda a massa deixando a borda mais grossa. Faça furos no fundo e leve para assar por 10min. Retire do forno acrescente o recheio e em seguida o creme, Espalhe parmesão por cima do creme e volte ao forno por 20mim. Espere esfriar um pouco e já pode desinformar com cuidado. (Desfie o palmito com o garfo, como se estivesse desfiando frango. Aqueça uma panela com azeite e o alho e refogue. Acrescente a páprica e a cúrcuma e em seguida o palmito e o tomate. Refogue mais um pouco mais não deixe a agua do tomate secar; CREME Misture o creme de leite com o ovo e o sal e bata como se estivesse fazendo um bolo. MONTAGEM Em uma forma de fundo removível espalhe toda a massa deixando a borda mais grossa. Faça furos no fundo e leve para assar por 10min. Retire do forno acrescente o recheio e em seguida o creme, Espalhe parmesão por cima do creme e volte ao forno por 20mim. Espere esfriar um pouco e já pode desinformar com cuidado.)"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Lasanha de Beringela",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "Beringela",
+        "quantidade": " (4 unidades pequenas)"
+      },
+      {
+        "item": "Cebola",
+        "quantidade": " (1 uni)"
+      },
+      {
+        "item": "Farinha de trigo",
+        "quantidade": " (2 colheres)"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": " (½ xicara de chá)"
+      },
+      {
+        "item": "Noz moscada",
+        "quantidade": " (A gosto)"
+      },
+      {
+        "item": "Muçarela",
+        "quantidade": " (100g)"
+      }
+    ],
+    "modo_preparo": [
+      "corte a beringela em fatias ou rodelas, polvilhe sal e reserve",
+      "em uma panela refogue a cebola, e acrescente a cenoura processada refogue bem",
+      "acrescente o tomate pelado picado tempere com manjericão, sal e pimenta do reino, espere ferver, desligue e reserve",
+      "em outra panela acrescente a manteiga e farinha de trigo e frite até a farinha começar a espumar",
+      "acrescente o leite, noz moscada, duas colheres parmesão e acerte o sal",
+      "deixe ferver até formar um molho branco não muito grosso, reserve",
+      "em uma frigideira com azeite grelhe as fatias de beringela dos 2 lados até que estejam bem douradas",
+      "montagem lasanha faça uma cama no fundo de uma travessa com o molho vermelho, em seguida camadas da beringela depois o molho branco",
+      "repita essas camadas até o final da travessa terminando com o molho branco",
+      "finalize com a muçarela e o restante do parmesão",
+      "leve ao forno até o queijo derreter e gratinar por cima",
+      "finalize com folhas frescas de manjericão corte a beringela em fatias ou rodelas, polvilhe sal e reserve",
+      "em uma panela refogue a cebola, e acrescente a cenoura processada refogue bem",
+      "acrescente o tomate pelado picado tempere com manjericão, sal e pimenta do reino, espere ferver, desligue e reserve",
+      "em outra panela acrescente a manteiga e farinha de trigo e frite até a farinha começar a espumar",
+      "acrescente o leite, noz moscada, duas colheres parmesão e acerte o sal",
+      "deixe ferver até formar um molho branco não muito grosso, reserve",
+      "em uma frigideira com azeite grelhe as fatias de beringela dos 2 lados até que estejam bem douradas",
+      "montagem lasanha faça uma cama no fundo de uma travessa com o molho vermelho, em seguida camadas da beringela depois o molho branco",
+      "repita essas camadas até o final da travessa terminando com o molho branco",
+      "finalize com a muçarela e o restante do parmesão",
+      "leve ao forno até o queijo derreter e gratinar por cima",
+      "finalize com folhas frescas de manjericão corte a beringela em fatias ou rodelas, polvilhe sal e reserve",
+      "em uma panela refogue a cebola, e acrescente a cenoura processada refogue bem",
+      "acrescente o tomate pelado picado tempere com manjericão, sal e pimenta do reino, espere ferver, desligue e reserve",
+      "em outra panela acrescente a manteiga e farinha de trigo e frite até a farinha começar a espumar",
+      "acrescente o leite, noz moscada, duas colheres parmesão e acerte o sal",
+      "deixe ferver até formar um molho branco não muito grosso, reserve",
+      "em uma frigideira com azeite grelhe as fatias de beringela dos 2 lados até que estejam bem douradas",
+      "montagem lasanha faça uma cama no fundo de uma travessa com o molho vermelho, em seguida camadas da beringela depois o molho branco",
+      "repita essas camadas até o final da travessa terminando com o molho branco",
+      "finalize com a muçarela e o restante do parmesão",
+      "leve ao forno até o queijo derreter e gratinar por cima",
+      "finalize com folhas frescas de manjericão"
+    ]
+  },
+  {
+    "titulo": "Esfiha massa",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "Farinha de trigo",
+        "quantidade": "550 a 600g"
+      },
+      {
+        "item": "açúcar",
+        "quantidade": "1 colher de sobremesa"
+      },
+      {
+        "item": "sal",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Fermento biológico seco",
+        "quantidade": "10g"
+      },
+      {
+        "item": "Azeite ou óleo",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Água morna",
+        "quantidade": "1 ½ xicara"
+      }
+    ],
+    "modo_preparo": [
+      "em uma vasilha grande coloque os secos (500g de farinha, fermento, sal e açúcar) misture e coloque os molhados (água, e azeite) mexa com as mãos e caso necessário vá acrescentando farinha aos poucos até desgrudar das mãos",
+      "cubra e deixe descansar por 30 min",
+      "faça bolinhas de 50g e deixe descansar por mais 30 mim coloque o recheio e leve para assar em forno pré  aquecido a 180 graus ate dourar",
+      "em uma vasilha grande coloque os secos (500g de farinha, fermento, sal e açúcar) misture e coloque os molhados (água, e azeite) mexa com as mãos e caso necessário vá acrescentando farinha aos poucos até desgrudar das mãos",
+      "cubra e deixe descansar por 30 min",
+      "faça bolinhas de 50g e deixe descansar por mais 30 mim coloque o recheio e leve para assar em forno pré  aquecido a 180 graus ate dourar",
+      "em uma vasilha grande coloque os secos (500g de farinha, fermento, sal e açúcar) misture e coloque os molhados (água, e azeite) mexa com as mãos e caso necessário vá acrescentando farinha aos poucos até desgrudar das mãos",
+      "cubra e deixe descansar por 30 min",
+      "faça bolinhas de 50g e deixe descansar por mais 30 mim coloque o recheio e leve para assar em forno pré  aquecido a 180 graus ate dourar"
+    ]
+  },
+  {
+    "titulo": "Recheio carne",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "Carme moído patinho",
+        "quantidade": "250g"
+      },
+      {
+        "item": "cebola",
+        "quantidade": "½ unidade"
+      },
+      {
+        "item": "Tomate maduro",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Limão",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Sal e pimenta",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Folhas de hortelã",
+        "quantidade": "Opcional"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Recheio queijo",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "Queijo minas frescal",
+        "quantidade": "200g"
+      },
+      {
+        "item": "Queijo muçarela",
+        "quantidade": "100g"
+      },
+      {
+        "item": "Salsinha a gosto",
+        "quantidade": "Á gosto"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Muffim salgado de atum",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "ovos",
+        "quantidade": "3"
+      },
+      {
+        "item": "Goma de tapioca",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Iogurte natural",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "atum",
+        "quantidade": "1 lata"
+      },
+      {
+        "item": "Azeitona preta",
+        "quantidade": "1/3 xícara"
+      },
+      {
+        "item": "Fermento para bolo",
+        "quantidade": "1 colher rasa"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "Á gosto"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Creme de papaya e tahine",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "Mamão papaia em cubos",
+        "quantidade": "½ Mamão médio"
+      },
+      {
+        "item": "Damasco",
+        "quantidade": "3 e ½ unidades"
+      },
+      {
+        "item": "Tahine",
+        "quantidade": "4 colheres de sopa"
+      },
+      {
+        "item": "Castanha de caju crua",
+        "quantidade": "¼ xicara de chá"
+      },
+      {
+        "item": "Mel",
+        "quantidade": "3 colheres"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Granola doce",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "Aveia em flocos",
+        "quantidade": "2 xicaras"
+      },
+      {
+        "item": "Castanha de caju quebrada",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Castanha para quebrada",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Semente de linhaça dourada",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Semente de abóbora",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Gergelim",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Amêndoas laminadas",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Fitas de coco",
+        "quantidade": "1 xicara"
+      },
+      {
+        "item": "Uva passa",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Mel",
+        "quantidade": "1 ½ xicara"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Dadinho de tapioca",
+    "arquivo_fonte": "apostila 5.docx",
+    "ingredientes": [
+      {
+        "item": "Tapioca granulada",
+        "quantidade": "500"
+      },
+      {
+        "item": "Leite",
+        "quantidade": "1 litro"
+      },
+      {
+        "item": "Queijo coalho",
+        "quantidade": "300"
+      },
+      {
+        "item": "Queijo muçarela",
+        "quantidade": "300"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Pimenta do reino",
+        "quantidade": "A gosto"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Geleia de pimenta",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "pimentas sem semente",
+        "quantidade": "4"
+      },
+      {
+        "item": "Açúcar",
+        "quantidade": "2 xicaras"
+      },
+      {
+        "item": "Alho",
+        "quantidade": "1uni"
+      },
+      {
+        "item": "Tomate pelado",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Maisena",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "1 colher"
+      },
+      {
+        "item": "Suco de limão ou vinagre",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Água",
+        "quantidade": "4 xicaras"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Caldo de abóbora com carne seca",
+    "arquivo_fonte": "apostila 4.docx",
+    "ingredientes": [
+      {
+        "item": "Abobora cabotia em cubos sem casca",
+        "quantidade": "600g"
+      },
+      {
+        "item": "Cebola",
+        "quantidade": "½ unidade"
+      },
+      {
+        "item": "Carne seca",
+        "quantidade": "200"
+      },
+      {
+        "item": "Alho",
+        "quantidade": "2 dentes"
+      },
+      {
+        "item": "Água",
+        "quantidade": "500ml"
+      },
+      {
+        "item": "Creme de leite",
+        "quantidade": "½ caixinha"
+      },
+      {
+        "item": "Sal e pimenta do reino",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Salsinha",
+        "quantidade": "a gosto"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Molho de queijo",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "Creme de leite",
+        "quantidade": "400g"
+      },
+      {
+        "item": "Parmesão ralado",
+        "quantidade": "100g"
+      },
+      {
+        "item": "Noz moscada ralada",
+        "quantidade": "½ colher de café"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "A gosto"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "LEGUMES ASSADOS COM ALCAPARRA",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "Cebola roxa",
+        "quantidade": "2 uni"
+      },
+      {
+        "item": "Cenoura",
+        "quantidade": "2uni"
+      },
+      {
+        "item": "Batata doce",
+        "quantidade": "1 uni"
+      },
+      {
+        "item": "Abobrinha",
+        "quantidade": "1 uni"
+      },
+      {
+        "item": "chuchu",
+        "quantidade": "1 uni"
+      },
+      {
+        "item": "Tomate cereja",
+        "quantidade": "1 bandeja"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Alecrim",
+        "quantidade": "1 colher de café"
+      },
+      {
+        "item": "Manjericão",
+        "quantidade": "10 folhas"
+      },
+      {
+        "item": "Alho",
+        "quantidade": "1 cabeça"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "½ xicara"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Vinagrete de alcaparra",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "Alcaparra",
+        "quantidade": "3 colheres de sopa"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "2 colheres de sopa"
+      },
+      {
+        "item": "Limão",
+        "quantidade": "1/2 unidade"
+      },
+      {
+        "item": "Mostarda",
+        "quantidade": "1/2colher de chá"
+      },
+      {
+        "item": "Hortelã ou salsinha",
+        "quantidade": "A gosto"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Picadinho de filet mignon",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "File mignon ou alcatra",
+        "quantidade": "500"
+      },
+      {
+        "item": "Alho",
+        "quantidade": "2 dentes"
+      },
+      {
+        "item": "Molho shoyo",
+        "quantidade": "1 xicara"
+      },
+      {
+        "item": "Gengibre",
+        "quantidade": "10g"
+      },
+      {
+        "item": "Maisena",
+        "quantidade": "1 /2 colher se sopa"
+      },
+      {
+        "item": "Cenoura",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Vagem",
+        "quantidade": "200g"
+      },
+      {
+        "item": "Óleo de gergelim",
+        "quantidade": "2 colheres de sopa"
+      },
+      {
+        "item": "Cebolinha",
+        "quantidade": "2 colheres de sopa"
+      },
+      {
+        "item": "mel",
+        "quantidade": "1 colher"
+      },
+      {
+        "item": "Gergelim branco ou amendoim",
+        "quantidade": "1 colher de sopa"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Doce de leite",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "Leite",
+        "quantidade": "2 litros"
+      },
+      {
+        "item": "Açúcar de coco",
+        "quantidade": "240g"
+      },
+      {
+        "item": "Extrato de baunilha",
+        "quantidade": "1 colher de café"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Massa banoffe",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "Amendoim ou castanha",
+        "quantidade": "400"
+      },
+      {
+        "item": "Uva passa branca",
+        "quantidade": "200"
+      },
+      {
+        "item": "Canela",
+        "quantidade": "colher de café"
+      },
+      {
+        "item": "Processe tudo até obter uma farofa úmida.",
+        "quantidade": "Processe tudo até obter uma farofa úmida. (Processe tudo até obter uma farofa úmida.)"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Chantilly",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "Creme de leite fresco",
+        "quantidade": "500g"
+      },
+      {
+        "item": "Açúcar demerara",
+        "quantidade": "4 colheres"
+      },
+      {
+        "item": "Extrato de baunilha",
+        "quantidade": "1 colher de chá"
+      },
+      {
+        "item": "Coloque o creme de leite no freezer por 10 min, ele ´precisa estar bem gelado Bata o açúcar no liquidificador, ele vai ficar um açúcar refinado. Na batedeira bata o creme de leite e o açúcar ate obter a consistência desejada",
+        "quantidade": "Coloque o creme de leite no freezer por 10 min, ele ´precisa estar bem gelado Bata o açúcar no liquidificador, ele vai ficar um açúcar refinado. Na batedeira bata o creme de leite e o açúcar ate obter a consistência desejada (Coloque o creme de leite no freezer por 10 min, ele ´precisa estar bem gelado Bata o açúcar no liquidificador, ele vai ficar um açúcar refinado. Na batedeira bata o creme de leite e o açúcar ate obter a consistência desejada)"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Requeijão",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "Leite",
+        "quantidade": "1 litro"
+      },
+      {
+        "item": "Limão",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Manteiga",
+        "quantidade": "1 colher e meia"
+      },
+      {
+        "item": "Leve o leite para ferver, assim que começar a levantar fervura desligue e acrescente o suco de limão. Mexa bem e deixe descansar por no mínimo 1 hora.",
+        "quantidade": "Leve o leite para ferver, assim que começar a levantar fervura desligue e acrescente o suco de limão. Mexa bem e deixe descansar por no mínimo 1 hora. (Leve o leite para ferver, assim que começar a levantar fervura desligue e acrescente o suco de limão. Mexa bem e deixe descansar por no mínimo 1 hora.)"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Coxinha massa",
+    "arquivo_fonte": "apostila 3.docx",
+    "ingredientes": [
+      {
+        "item": "Peito de frango",
+        "quantidade": "500g"
+      },
+      {
+        "item": "Inhame cozido",
+        "quantidade": "2 unidades"
+      },
+      {
+        "item": "Mostarda",
+        "quantidade": "1 colher de sopa"
+      },
+      {
+        "item": "Parmesão ralado",
+        "quantidade": "50g"
+      },
+      {
+        "item": "Farinha de amêndoas",
+        "quantidade": "1 xicara"
+      },
+      {
+        "item": "Sal e pimenta",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Cúrcuma",
+        "quantidade": "1 colher de café"
+      },
+      {
+        "item": "Páprica defumada",
+        "quantidade": "1 colher de café"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "À gosto"
+      },
+      {
+        "item": "Ovo",
+        "quantidade": "À gosto"
+      },
+      {
+        "item": "Farinha de rosca",
+        "quantidade": "À gosto"
+      },
+      {
+        "item": "Tempere o frango como preferir e leve para pressão para cozinhar. Desfie o frango bem desfiado. Bata o inhame cozido no liquidificador até formar um purê, reserve. Aqueça uma panela com azeite e acrescente a cúrcuma e a páprica Refoque um pouco e coloque o peito de frango, misture bem e acrescente o purê de inhame, o parmesão e a mostarda. Mexa muito bem acerte o sal e pimenta e vai acrescentando a farinha aos poucos. Vai desgrudando o fundo com uma colher mexendo sempre até a massa desgrudar do fundo é sinal que esta cozida. Espere esfriar totalmente para moldar. Congele o requeijão em bolinhas e molde a coxinha recheando com o requeijão. Faça o empanamento passando no ovo e na farinha de rosca. Asse no forno por 15 min.",
+        "quantidade": "Tempere o frango como preferir e leve para pressão para cozinhar. Desfie o frango bem desfiado. Bata o inhame cozido no liquidificador até formar um purê, reserve. Aqueça uma panela com azeite e acrescente a cúrcuma e a páprica Refoque um pouco e coloque o peito de frango, misture bem e acrescente o purê de inhame, o parmesão e a mostarda. Mexa muito bem acerte o sal e pimenta e vai acrescentando a farinha aos poucos. Vai desgrudando o fundo com uma colher mexendo sempre até a massa desgrudar do fundo é sinal que esta cozida. Espere esfriar totalmente para moldar. Congele o requeijão em bolinhas e molde a coxinha recheando com o requeijão. Faça o empanamento passando no ovo e na farinha de rosca. Asse no forno por 15 min. (Tempere o frango como preferir e leve para pressão para cozinhar. Desfie o frango bem desfiado. Bata o inhame cozido no liquidificador até formar um purê, reserve. Aqueça uma panela com azeite e acrescente a cúrcuma e a páprica Refoque um pouco e coloque o peito de frango, misture bem e acrescente o purê de inhame, o parmesão e a mostarda. Mexa muito bem acerte o sal e pimenta e vai acrescentando a farinha aos poucos. Vai desgrudando o fundo com uma colher mexendo sempre até a massa desgrudar do fundo é sinal que esta cozida. Espere esfriar totalmente para moldar. Congele o requeijão em bolinhas e molde a coxinha recheando com o requeijão. Faça o empanamento passando no ovo e na farinha de rosca. Asse no forno por 15 min.)"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Carpaccio de peixe com molho cítrico de laranja",
+    "arquivo_fonte": "apostila 2.docx",
+    "ingredientes": [
+      {
+        "item": "sal",
+        "quantidade": " (A gosto)"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "FOCACCIA CAPRESE",
+    "arquivo_fonte": "apostila 2.docx",
+    "ingredientes": [
+      {
+        "item": "Farinha de trigo",
+        "quantidade": "500"
+      },
+      {
+        "item": "Água morna",
+        "quantidade": "420"
+      },
+      {
+        "item": "Fermento biológico",
+        "quantidade": "6"
+      },
+      {
+        "item": "mel",
+        "quantidade": "5g"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "10"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "10"
+      },
+      {
+        "item": "Tomate cereja",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Pesto de manjericão",
+        "quantidade": "2 colheres de sopa"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Bolo de limão com calda",
+    "arquivo_fonte": "apostila 2.docx",
+    "ingredientes": [
+      {
+        "item": "Ovos",
+        "quantidade": "3"
+      },
+      {
+        "item": "Açúcar",
+        "quantidade": "1 xicara e 1/4"
+      },
+      {
+        "item": "Leite",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Suco de limão",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Farinha de trigo",
+        "quantidade": "2 xicaras e meia rasa"
+      },
+      {
+        "item": "Manteiga em temperatura ambiente",
+        "quantidade": "2 colheres cheias"
+      },
+      {
+        "item": "Fermento",
+        "quantidade": "1 colher de sopa"
+      },
+      {
+        "item": "calda",
+        "quantidade": "------------------- (----------------------)"
+      },
+      {
+        "item": "Açúcar de confeiteiro",
+        "quantidade": "200g ou 2 xicaras rasas"
+      },
+      {
+        "item": "Limão",
+        "quantidade": "Suco de 2 limões"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Risoto de pera e gorgonzola com file mignon",
+    "arquivo_fonte": "apostila 2.docx",
+    "ingredientes": [
+      {
+        "item": "File mignon",
+        "quantidade": "600g"
+      },
+      {
+        "item": "Cebola",
+        "quantidade": "1 unidade media"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "2 colheres de sopa"
+      },
+      {
+        "item": "Arroz arbório",
+        "quantidade": "2 xicaras"
+      },
+      {
+        "item": "Vinho branco",
+        "quantidade": "1 xicara"
+      },
+      {
+        "item": "Peras",
+        "quantidade": "3 unidades"
+      },
+      {
+        "item": "Queijo gorgonzola",
+        "quantidade": "50g"
+      },
+      {
+        "item": "Queijo parmesão",
+        "quantidade": "100g"
+      },
+      {
+        "item": "Caldo de legumes",
+        "quantidade": "1 litro"
+      },
+      {
+        "item": "Manteiga",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Sal e pimenta a gosto",
+        "quantidade": "A gosto"
+      }
+    ],
+    "modo_preparo": [
+      "corte a carne em files de 2,5cm aqueça uma panela com azeite e leve os files para dourar, tempera com sal e pimenta, deixe dourar dos 2 lados adicione uma colher de manteiga e deixe até atingir o ponto",
+      "para carne bem passada leve ao forno por 10min retire e reserve na mesma panela refogue a cebola, adicione o arroz e refogue novamente",
+      "despeje o vinho branco e misture até secar",
+      "junte o caldo de legumes quente até cobrir o arroz e misture até secar",
+      "repita esse processo até que o arroz esteja ao dente",
+      "adicione os 2 queijos e a manteiga e desligue o fogo corte as peras em cubinhos e doure na manteiga",
+      "finalize o risoto com as peras e sirva com o file grelhado",
+      "corte a carne em files de 2,5cm aqueça uma panela com azeite e leve os files para dourar, tempera com sal e pimenta, deixe dourar dos 2 lados adicione uma colher de manteiga e deixe até atingir o ponto",
+      "para carne bem passada leve ao forno por 10min retire e reserve na mesma panela refogue a cebola, adicione o arroz e refogue novamente",
+      "despeje o vinho branco e misture até secar",
+      "junte o caldo de legumes quente até cobrir o arroz e misture até secar",
+      "repita esse processo até que o arroz esteja ao dente",
+      "adicione os 2 queijos e a manteiga e desligue o fogo corte as peras em cubinhos e doure na manteiga",
+      "finalize o risoto com as peras e sirva com o file grelhado",
+      "corte a carne em files de 2,5cm aqueça uma panela com azeite e leve os files para dourar, tempera com sal e pimenta, deixe dourar dos 2 lados adicione uma colher de manteiga e deixe até atingir o ponto",
+      "para carne bem passada leve ao forno por 10min retire e reserve na mesma panela refogue a cebola, adicione o arroz e refogue novamente",
+      "despeje o vinho branco e misture até secar",
+      "junte o caldo de legumes quente até cobrir o arroz e misture até secar",
+      "repita esse processo até que o arroz esteja ao dente",
+      "adicione os 2 queijos e a manteiga e desligue o fogo corte as peras em cubinhos e doure na manteiga",
+      "finalize o risoto com as peras e sirva com o file grelhado"
+    ]
+  },
+  {
+    "titulo": "Caponata de beringela",
+    "arquivo_fonte": "apostila 2.docx",
+    "ingredientes": [
+      {
+        "item": "Beringela",
+        "quantidade": "2 unidades"
+      },
+      {
+        "item": "Abobrinha",
+        "quantidade": "2 unidades"
+      },
+      {
+        "item": "Pimentão vermelho",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Pimentão amarelo",
+        "quantidade": "1 unidade"
+      },
+      {
+        "item": "Alho em lâminas",
+        "quantidade": "2 dentes"
+      },
+      {
+        "item": "Azeitona preta",
+        "quantidade": "1 xicara rasa"
+      },
+      {
+        "item": "Uva passa",
+        "quantidade": "1 xicara rasa"
+      },
+      {
+        "item": "Vinagre",
+        "quantidade": "¼ xicara"
+      },
+      {
+        "item": "Nozes ou castanhas",
+        "quantidade": "½ xicara"
+      },
+      {
+        "item": "Cebolinha ou cheiro verde",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "1 xicara e meia"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Caldo de mandioca com carne",
+    "arquivo_fonte": "apostila 5.docx",
+    "ingredientes": [
+      {
+        "item": "Mandioca",
+        "quantidade": "1kg"
+      },
+      {
+        "item": "Alho",
+        "quantidade": "2 dentes"
+      },
+      {
+        "item": "Carne cozida",
+        "quantidade": "O que achar necessário"
+      },
+      {
+        "item": "azeite",
+        "quantidade": "2 colheres"
+      },
+      {
+        "item": "Alho poro",
+        "quantidade": "1 raiz"
+      },
+      {
+        "item": "curry",
+        "quantidade": "½ colher se café"
+      },
+      {
+        "item": "Sal e pimenta do reino",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Água",
+        "quantidade": "Se necessario"
+      },
+      {
+        "item": "Cheiro verde",
+        "quantidade": "1 colher de sopa"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Toast de cogumelos",
+    "arquivo_fonte": "apostila 5.docx",
+    "ingredientes": [
+      {
+        "item": "Pão de fermentação natural ou italiano",
+        "quantidade": "2 fatias"
+      },
+      {
+        "item": "Cogumelo shimeji",
+        "quantidade": "200 gramas"
+      },
+      {
+        "item": "Creme de ricota",
+        "quantidade": "2 colheres e meia cheias"
+      },
+      {
+        "item": "Azeite",
+        "quantidade": "Para refogar"
+      },
+      {
+        "item": "Sal e pimenta do reino",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Shoyou",
+        "quantidade": "2 colheres de sopa"
+      }
+    ],
+    "modo_preparo": []
+  },
+  {
+    "titulo": "Massa",
+    "arquivo_fonte": "apostila 5.docx",
+    "ingredientes": [
+      {
+        "item": "Farinha de trigo",
+        "quantidade": "3 xicaras"
+      },
+      {
+        "item": "Manteiga",
+        "quantidade": "150g"
+      },
+      {
+        "item": "gemas",
+        "quantidade": "2"
+      },
+      {
+        "item": "Sal",
+        "quantidade": "½ colher de café"
+      },
+      {
+        "item": "água",
+        "quantidade": "50ml"
+      }
+    ],
+    "modo_preparo": [
+      "misture a manteiga e a farinha até virar uma farofinha",
+      "coloque a águas e a gemas em um potinho e misture",
+      "acrescente na farofinha aos poucos e vai sovando",
+      "deixe descansar na geladeira por 15mim",
+      "abra a massa sobre um plástico com o rolo e forre o fundo da assadeira",
+      "acrescente o recheio frio",
+      "abra o restante da massa para a tampa",
+      "pincele gemas na tampa e leve ao forno até dourar",
+      "misture a manteiga e a farinha até virar uma farofinha",
+      "coloque a águas e a gemas em um potinho e misture",
+      "acrescente na farofinha aos poucos e vai sovando",
+      "deixe descansar na geladeira por 15mim",
+      "abra a massa sobre um plástico com o rolo e forre o fundo da assadeira",
+      "acrescente o recheio frio",
+      "abra o restante da massa para a tampa",
+      "pincele gemas na tampa e leve ao forno até dourar",
+      "misture a manteiga e a farinha até virar uma farofinha",
+      "coloque a águas e a gemas em um potinho e misture",
+      "acrescente na farofinha aos poucos e vai sovando",
+      "deixe descansar na geladeira por 15mim",
+      "abra a massa sobre um plástico com o rolo e forre o fundo da assadeira",
+      "acrescente o recheio frio",
+      "abra o restante da massa para a tampa",
+      "pincele gemas na tampa e leve ao forno até dourar"
+    ]
+  },
+  {
+    "titulo": "Recheio de palmito",
+    "arquivo_fonte": "apostila 5.docx",
+    "ingredientes": [
+      {
+        "item": "Palmito em conserva",
+        "quantidade": "1 Vidro"
+      },
+      {
+        "item": "Cebola",
+        "quantidade": "½ unidade"
+      },
+      {
+        "item": "Extrato de tomate",
+        "quantidade": "1 colher rasa"
+      },
+      {
+        "item": "Páprica defumada",
+        "quantidade": "1 colher de café"
+      },
+      {
+        "item": "Sal e pimenta do reino",
+        "quantidade": "A gosto"
+      },
+      {
+        "item": "Leite",
+        "quantidade": "1 xicara"
+      },
+      {
+        "item": "Amido de milho(maisena)",
+        "quantidade": "1 colher de café"
+      },
+      {
+        "item": "Cheiro verde",
+        "quantidade": "A gosto"
+      }
+    ],
+    "modo_preparo": []
+  }
+]
