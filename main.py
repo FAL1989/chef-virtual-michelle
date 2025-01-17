@@ -19,7 +19,12 @@ if os.path.exists(".env"):
     load_dotenv()
 
 # Inicializa o cliente OpenAI
-client = OpenAI(api_key=st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY"))
+api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+if not api_key:
+    st.error("Chave da API OpenAI não encontrada!")
+    st.stop()
+
+client = OpenAI(api_key=api_key)
 db = ReceitasDB()
 
 # Inicializa o histórico de mensagens no session_state se não existir
