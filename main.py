@@ -18,13 +18,13 @@ st.set_page_config(
 if os.path.exists(".env"):
     load_dotenv()
 
-# Inicializa o cliente OpenAI
-api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
-if not api_key:
-    st.error("Chave da API OpenAI não encontrada!")
+# Inicializa o cliente OpenAI de forma mais simples
+try:
+    client = OpenAI()  # Vai usar automaticamente a variável de ambiente OPENAI_API_KEY
+except Exception as e:
+    st.error(f"Erro ao inicializar OpenAI: {e}")
     st.stop()
 
-client = OpenAI(api_key=api_key)
 db = ReceitasDB()
 
 # Inicializa o histórico de mensagens no session_state se não existir
