@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from openai import OpenAI
+import openai
 from dotenv import load_dotenv
 from database import ReceitasDB
 import json
@@ -18,13 +18,11 @@ st.set_page_config(
 if os.path.exists(".env"):
     load_dotenv()
 
-# Inicializa o cliente OpenAI usando a forma recomendada pelo Streamlit
+# Configura a API key do OpenAI
 try:
-    if not hasattr(st, "client"):
-        st.client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-    client = st.client
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
 except Exception as e:
-    st.error(f"Erro ao inicializar OpenAI: {str(e)}")
+    st.error(f"Erro ao configurar OpenAI: {str(e)}")
     st.stop()
 
 db = ReceitasDB()
@@ -82,7 +80,7 @@ def gerar_nova_receita(pergunta: str) -> str:
         # Obtém o contexto das receitas existentes
         contexto = db.get_todas_receitas()
         
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4-turbo-preview",
             messages=[
                 {
