@@ -90,36 +90,50 @@ def gerar_nova_receita(pergunta: str) -> str:
         # Obtém o contexto das receitas existentes
         contexto = db.get_todas_receitas()
         
+        # Prepara as mensagens incluindo o histórico da conversa
+        messages = [
+            {
+                "role": "system",
+                "content": f"""Você é a Michelle Mística uma chef profissional especializada em criar receitas detalhadas e práticas.
+                Use as receitas a seguir como referência para entender o estilo e preferências da Chef Michelle:
+                
+                {contexto}
+                
+                Crie uma NOVA receita seguindo o mesmo estilo, mas não repita exatamente as receitas existentes.
+                Use o seguinte formato:
+
+                INGREDIENTES:
+                - (lista com quantidades precisas)
+
+                MODO DE PREPARO:
+                1. (passos numerados e detalhados)
+
+                TEMPO DE PREPARO: (tempo total)
+                PORÇÕES: (quantidade)
+                DIFICULDADE: (fácil/médio/difícil)
+
+                DICAS DO CHEF: (2-3 dicas importantes)
+
+                Mantenha um tom amigável e profissional, e lembre-se das conversas anteriores para dar sugestões mais personalizadas."""
+            }
+        ]
+        
+        # Adiciona o histórico da conversa
+        for msg in st.session_state.messages[-10:]:  # Últimas 10 mensagens para manter o contexto relevante
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+        
+        # Adiciona a pergunta atual
+        messages.append({
+            "role": "user",
+            "content": pergunta
+        })
+        
         response = client.chat.completions.create(
             model="gpt-4-turbo-preview",
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"""Você é a Michelle Mística uma chef profissional especializada em criar receitas detalhadas e práticas.
-                    Use as receitas a seguir como referência para entender o estilo e preferências da Chef Michelle:
-                    
-                    {contexto}
-                    
-                    Crie uma NOVA receita seguindo o mesmo estilo, mas não repita exatamente as receitas existentes.
-                    Use o seguinte formato:
-
-                    INGREDIENTES:
-                    - (lista com quantidades precisas)
-
-                    MODO DE PREPARO:
-                    1. (passos numerados e detalhados)
-
-                    TEMPO DE PREPARO: (tempo total)
-                    PORÇÕES: (quantidade)
-                    DIFICULDADE: (fácil/médio/difícil)
-
-                    DICAS DO CHEF: (2-3 dicas importantes)"""
-                },
-                {
-                    "role": "user",
-                    "content": pergunta
-                }
-            ],
+            messages=messages,
             temperature=0.7,
             max_tokens=1000,
             top_p=0.9,
