@@ -249,10 +249,10 @@ class ReceitasDB(DatabaseInterface):
             if not query:
                 data = self.supabase.table("receitas").select("*").execute()
             else:
-                # Busca usando match exato no título (case insensitive)
+                # Busca usando match parcial no título (case insensitive)
                 data = (self.supabase.table("receitas")
                        .select("*")
-                       .eq("titulo", query.strip().upper())  # Garante que a busca seja em maiúsculo
+                       .ilike("titulo", f"%{query.strip().upper()}%")  # Busca parcial em maiúsculo
                        .execute())
 
             # Converte para o formato do chat e filtra valores None

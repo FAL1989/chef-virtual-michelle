@@ -72,13 +72,13 @@ def test_buscar_receitas(test_db):
     for receita in receitas_teste:
         test_db.adicionar_receita(receita)
     
-    # Testa busca por título exato
-    resultados = test_db.buscar_receitas("PÃO DE QUEIJO MINEIRO")  # Busca em maiúsculo
+    # Testa busca por título parcial
+    resultados = test_db.buscar_receitas("QUEIJO")  # Busca parcial em maiúsculo
     assert len(resultados) == 1
     assert resultados[0]["titulo"] == "PÃO DE QUEIJO MINEIRO"
     
-    # Testa busca por título exato
-    resultados = test_db.buscar_receitas("BRIGADEIRO DE CHOCOLATE")  # Busca em maiúsculo
+    # Testa busca por título parcial
+    resultados = test_db.buscar_receitas("BRIGADEIRO")  # Busca parcial em maiúsculo
     assert len(resultados) == 1
     assert resultados[0]["titulo"] == "BRIGADEIRO DE CHOCOLATE"
 
