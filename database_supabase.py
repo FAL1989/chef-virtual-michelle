@@ -177,6 +177,19 @@ class ReceitasDB(DatabaseInterface):
             before update on receitas
             for each row
             execute function update_updated_at_column();
+
+        -- Índices para busca em texto
+        CREATE EXTENSION IF NOT EXISTS pg_trgm;
+        
+        -- Índices GIN para campos de texto
+        CREATE INDEX IF NOT EXISTS idx_receitas_titulo_gin ON receitas USING gin (titulo gin_trgm_ops);
+        CREATE INDEX IF NOT EXISTS idx_receitas_ingredientes_gin ON receitas USING gin (ingredientes gin_trgm_ops);
+        CREATE INDEX IF NOT EXISTS idx_receitas_descricao_gin ON receitas USING gin (descricao gin_trgm_ops);
+        
+        -- Índices GIN para campos JSONB
+        CREATE INDEX IF NOT EXISTS idx_receitas_info_nutri ON receitas USING gin (informacoes_nutricionais);
+        CREATE INDEX IF NOT EXISTS idx_receitas_beneficios ON receitas USING gin (beneficios_funcionais);
+        CREATE INDEX IF NOT EXISTS idx_receitas_dicas ON receitas USING gin (dicas);
         """
         pass
 
@@ -233,24 +246,27 @@ class ReceitasDB(DatabaseInterface):
             # Verifica a estrutura dos dados primeiro
             self.verificar_estrutura()
             
-            # Busca usando eq para texto
+            # Busca usando a sintaxe correta para campos JSONB e TEXT
+            query_sql = f"titulo::text ILIKE '%{query}%'"
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .eq('titulo', query)
+                   .or_(query_sql)
                    .execute())
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
+                query_sql = f"ingredientes::text ILIKE '%{query}%'"
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .eq('ingredientes', query)
+                       .or_(query_sql)
                        .execute())
             
             # Se ainda não encontrou, tenta na descrição
             if not data.data:
+                query_sql = f"descricao::text ILIKE '%{query}%'"
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .eq('descricao', query)
+                       .or_(query_sql)
                        .execute())
             
             # Combina os resultados removendo duplicatas por ID
