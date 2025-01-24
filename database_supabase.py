@@ -10,6 +10,12 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def normalize_text(text: str) -> str:
+    """Normaliza um texto para busca"""
+    if not text:
+        return ""
+    return text.strip().lower()
+
 class DatabaseError(Exception):
     """Exceção customizada para erros do banco de dados"""
     pass
