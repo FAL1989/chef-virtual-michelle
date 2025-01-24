@@ -209,7 +209,7 @@ class ReceitasDB:
             # Busca por título
             data = (self.supabase.table('receitas')
                     .select('*')
-                    .like('titulo', f'%{query}%')
+                    .contains('titulo', query)
                     .execute())
             
             if data.data:
@@ -218,7 +218,7 @@ class ReceitasDB:
             # Se não encontrou por título, busca nos ingredientes
             data = (self.supabase.table('receitas')
                     .select('*')
-                    .like('ingredientes', f'%{query}%')
+                    .contains('ingredientes', query)
                     .execute())
             
             return [ReceitaAdapter.to_chat_format(r) for r in data.data]
@@ -237,7 +237,7 @@ class ReceitasDB:
             # Busca por título
             data = (self.supabase.table('receitas')
                     .select('*')
-                    .like('titulo', f'%{query}%')
+                    .contains('titulo', query)
                     .execute())
             
             if data.data:
@@ -246,7 +246,7 @@ class ReceitasDB:
             # Se não encontrou por título, busca nos ingredientes
             data = (self.supabase.table('receitas')
                     .select('*')
-                    .like('ingredientes', f'%{query}%')
+                    .contains('ingredientes', query)
                     .execute())
             
             return [ReceitaAdapter.to_chat_format(r) for r in data.data]
