@@ -210,33 +210,34 @@ class ReceitasDB(DatabaseInterface):
             query = clean_search_query(query)
             logger.info(f"Buscando receitas com query: {query}")
             
-            # Busca no título
-            data_titulo = (self.supabase.table('receitas')
-                         .select('*')
-                         .like('titulo', f'%{query}%')
-                         .execute())
+            # Busca usando filter com cast para text
+            data = (self.supabase.table('receitas')
+                   .select('*')
+                   .filter('titulo', 'ilike', f'%{query}%')
+                   .execute())
             
-            # Busca nos ingredientes
-            data_ingredientes = (self.supabase.table('receitas')
-                               .select('*')
-                               .like('ingredientes', f'%{query}%')
-                               .execute())
+            # Se não encontrou no título, tenta nos ingredientes
+            if not data.data:
+                data = (self.supabase.table('receitas')
+                       .select('*')
+                       .filter('ingredientes', 'ilike', f'%{query}%')
+                       .execute())
             
-            # Busca na descrição
-            data_descricao = (self.supabase.table('receitas')
-                            .select('*')
-                            .like('descricao', f'%{query}%')
-                            .execute())
+            # Se ainda não encontrou, tenta na descrição
+            if not data.data:
+                data = (self.supabase.table('receitas')
+                       .select('*')
+                       .filter('descricao', 'ilike', f'%{query}%')
+                       .execute())
             
             # Combina os resultados removendo duplicatas por ID
             receitas_dict = {}
             
-            for data in [data_titulo, data_ingredientes, data_descricao]:
-                if data and data.data:
-                    for receita in data.data:
-                        receita_id = str(receita.get('id')).strip()
-                        if receita_id and receita_id not in receitas_dict:
-                            receitas_dict[receita_id] = receita
+            if data and data.data:
+                for receita in data.data:
+                    receita_id = str(receita.get('id')).strip()
+                    if receita_id and receita_id not in receitas_dict:
+                        receitas_dict[receita_id] = receita
             
             # Converte para o formato do chat
             receitas = [ReceitaAdapter.to_chat_format(r) for r in receitas_dict.values()]
