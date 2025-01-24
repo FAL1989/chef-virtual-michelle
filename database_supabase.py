@@ -214,17 +214,15 @@ class ReceitasDB:
             st.write("DEBUG - Stack trace completo:", str(e))
             return None
 
-    def buscar_receita_por_id(self, receita_id: Union[str, int]) -> Optional[Dict]:
+    def buscar_receita_por_id(self, receita_id: str) -> Optional[Dict]:
         """Busca uma receita específica pelo ID"""
         try:
-            st.write("DEBUG - Iniciando busca por ID:", receita_id, "Tipo:", type(receita_id))
+            st.write("DEBUG - Iniciando busca por ID:", receita_id)
             
-            # Garante que o ID seja string para comparação
+            # Garante que o ID seja string e limpo
             receita_id = str(receita_id).strip()
             
-            st.write("DEBUG - ID convertido:", receita_id)
-            
-            # Faz a busca no Supabase usando o ID como está
+            # Faz a busca no Supabase usando o ID como string
             data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
             
             st.write("DEBUG - Resposta do Supabase:", data.data)
@@ -232,9 +230,6 @@ class ReceitasDB:
             if not data.data:
                 st.warning(f"Receita não encontrada: {receita_id}")
                 return None
-            
-            # Debug para verificar os dados retornados
-            st.write("DEBUG - Dados brutos:", data.data[0])
             
             # Converte para o formato do chat
             receita = self._converter_formato_db(data.data[0])
