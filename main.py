@@ -274,17 +274,23 @@ def extract_search_terms(prompt: str) -> str:
     """Extrai termos de busca de uma pergunta"""
     # Palavras que indicam busca por receita
     recipe_indicators = [
-        'receita', 'receitas', 'como fazer', 'como preparar',
-        'tem alguma', 'existe alguma', 'sabe fazer', 'conhece'
+        'receita de', 'receitas de', 'como fazer', 'como preparar',
+        'tem alguma receita', 'existe alguma receita', 'sabe fazer', 'conhece'
     ]
     
     # Remove pontuação e converte para minúsculas
-    prompt = ''.join(c.lower() for c in prompt if c.isalnum() or c.isspace())
+    prompt = prompt.lower()
     
-    # Se a pergunta contém indicadores de receita, remove-os
+    # Remove os indicadores de receita
     for indicator in recipe_indicators:
         if indicator in prompt:
             prompt = prompt.replace(indicator, '')
+    
+    # Remove pontuação mantendo espaços
+    prompt = ''.join(c if c.isalnum() or c.isspace() else ' ' for c in prompt)
+    
+    # Remove espaços extras
+    prompt = ' '.join(prompt.split())
     
     return prompt.strip()
 
