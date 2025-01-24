@@ -282,14 +282,65 @@ def process_user_input(client: OpenAI, db: ReceitasDB):
                 receitas_encontradas = db.buscar_receitas(prompt)
                 
                 if receitas_encontradas:
-                    resposta = "Encontrei estas receitas no nosso banco de dados:\n\n"
+                    resposta = "Encontrei algumas receitas que podem te ajudar!\n\n"
                     for receita in receitas_encontradas:
-                        resposta += db.format_recipe_output(receita) + "\n---\n\n"
+                        # Gera uma resposta em linguagem natural
+                        resposta += f"O {receita['titulo'].lower()} é uma ótima opção! "
+                        if receita.get('descricao'):
+                            resposta += f"{receita['descricao']} "
+                        
+                        resposta += "\n\nVocê vai precisar dos seguintes ingredientes:\n"
+                        for ing in receita.get('ingredientes', []):
+                            resposta += f"• {ing}\n"
+                        
+                        if receita.get('modo_preparo'):
+                            resposta += "\nO modo de preparo é simples:\n"
+                            for i, step in enumerate(receita['modo_preparo'], 1):
+                                resposta += f"{i}. {step}\n"
+                        
+                        if receita.get('dicas'):
+                            resposta += "\nDicas importantes:\n"
+                            for dica in receita['dicas']:
+                                resposta += f"• {dica}\n"
+                        
+                        if receita.get('harmonizacao'):
+                            resposta += f"\nDica de harmonização: {receita['harmonizacao']}\n"
+                        
+                        resposta += "\n---\n\n"
                 else:
                     st.info("Não encontrei receitas existentes com esses ingredientes. Vou criar uma nova receita para você!")
                     nova_receita = generate_new_recipe(client, prompt, db)
                     if nova_receita:
-                        resposta = db.format_recipe_output(nova_receita)
+                        try:
+                            # Salva no banco em formato JSON
+                            receita_dict = json.loads(nova_receita)
+                            if db.adicionar_receita(receita_dict):
+                                st.success("Receita salva no banco de dados!")
+                            
+                            # Gera resposta em linguagem natural
+                            resposta = f"Criei uma receita especial para você!\n\n"
+                            resposta += f"O {receita_dict['titulo'].lower()} é uma ótima opção! "
+                            if receita_dict.get('descricao'):
+                                resposta += f"{receita_dict['descricao']} "
+                            
+                            resposta += "\n\nVocê vai precisar dos seguintes ingredientes:\n"
+                            for ing in receita_dict.get('ingredientes', []):
+                                resposta += f"• {ing}\n"
+                            
+                            if receita_dict.get('modo_preparo'):
+                                resposta += "\nO modo de preparo é simples:\n"
+                                for i, step in enumerate(receita_dict['modo_preparo'], 1):
+                                    resposta += f"{i}. {step}\n"
+                            
+                            if receita_dict.get('dicas'):
+                                resposta += "\nDicas importantes:\n"
+                                for dica in receita_dict['dicas']:
+                                    resposta += f"• {dica}\n"
+                            
+                            if receita_dict.get('harmonizacao'):
+                                resposta += f"\nDica de harmonização: {receita_dict['harmonizacao']}\n"
+                        except json.JSONDecodeError:
+                            resposta = nova_receita  # Usa a resposta original em caso de erro
                     else:
                         resposta = "Desculpe, não consegui criar uma nova receita no momento."
                 
