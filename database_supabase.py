@@ -112,18 +112,20 @@ class ReceitasDB:
         """Busca receitas no banco de dados por título ou ingredientes"""
         try:
             if not query:
-                data = self.supabase.table('receitas').select('titulo,descricao,ingredientes').execute()
+                data = self.supabase.table('receitas').select('*').execute()
                 return [self._criar_resumo_receita(receita) for receita in data.data]
 
             # Limpa e normaliza a query
             query = query.strip().lower()
             
-            # Busca usando filter com or
-            data = self.supabase.table('receitas').select('titulo,descricao,ingredientes').filter('titulo', 'ilike', f'%{query}%').execute()
+            # Busca usando filter com ilike no título
+            data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
-                data = self.supabase.table('receitas').select('titulo,descricao,ingredientes').filter('ingredientes', 'ilike', f'%{query}%').execute()
+                data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
+            
+            st.write("DEBUG - Dados retornados do Supabase:", data.data)
             
             if not data.data:
                 return []
@@ -135,10 +137,11 @@ class ReceitasDB:
                 if resumo:  # Só adiciona se a conversão foi bem sucedida
                     receitas.append(resumo)
             
+            st.write("DEBUG - Resumos criados:", receitas)
             return receitas
                 
         except Exception as e:
-            logger.error(f"Erro ao buscar receitas: {e}")
+            st.error(f"Erro ao buscar receitas: {str(e)}")
             return []
 
     def _criar_resumo_receita(self, receita: Dict) -> Dict:
