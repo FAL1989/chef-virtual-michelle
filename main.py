@@ -353,34 +353,35 @@ def generate_new_recipe(client: OpenAI, prompt: str, db: ReceitasDB) -> str:
         messages = prepare_ai_context(prompt)
         response = call_openai_api(client, messages)
         
-        # Tenta salvar a receita no banco de dados
         try:
             # Converte a resposta para dict para salvar no banco
             receita_dict = json.loads(response)
             if db.adicionar_receita(receita_dict):
                 st.success("Receita salva no banco de dados!")
             
-            # Formata a resposta para o usuário em linguagem natural
-            resposta = f"Criei uma receita especial para você!\n\n"
+            # Formata a resposta em linguagem natural
+            resposta = "Criei uma receita especial para você!\n\n"
             resposta += f"O {receita_dict['titulo'].lower()} é uma ótima opção! "
             if receita_dict.get('descricao'):
                 resposta += f"{receita_dict['descricao']}\n\n"
+            
+            if receita_dict.get('beneficios_funcionais'):
+                resposta += "Esta receita traz os seguintes benefícios:\n"
+                for b in receita_dict['beneficios_funcionais']:
+                    resposta += f"• {b}\n"
+                resposta += "\n"
             
             resposta += "Você vai precisar dos seguintes ingredientes:\n"
             for ing in receita_dict.get('ingredientes', []):
                 resposta += f"• {ing}\n"
             
-            if receita_dict.get('modo_preparo'):
-                resposta += "\nModo de preparo:\n"
-                for i, step in enumerate(receita_dict['modo_preparo'], 1):
-                    resposta += f"{i}. {step}\n"
+            resposta += "\nModo de preparo:\n"
+            for i, step in enumerate(receita_dict.get('modo_preparo', []), 1):
+                resposta += f"{i}. {step}\n"
             
-            if receita_dict.get('tempo_preparo'):
-                resposta += f"\n⏰ Tempo de preparo: {receita_dict['tempo_preparo']}\n"
-            if receita_dict.get('porcoes'):
-                resposta += f"🍽️ Rende: {receita_dict['porcoes']}\n"
-            if receita_dict.get('dificuldade'):
-                resposta += f"📊 Dificuldade: {receita_dict['dificuldade']}\n"
+            resposta += f"\n⏰ Tempo de preparo: {receita_dict.get('tempo_preparo', 'N/A')}"
+            resposta += f"\n🍽️ Rende: {receita_dict.get('porcoes', 'N/A')}"
+            resposta += f"\n📊 Dificuldade: {receita_dict.get('dificuldade', 'N/A')}\n"
             
             if receita_dict.get('dicas'):
                 resposta += "\nDicas importantes:\n"
@@ -388,18 +389,14 @@ def generate_new_recipe(client: OpenAI, prompt: str, db: ReceitasDB) -> str:
                     resposta += f"• {dica}\n"
             
             if receita_dict.get('harmonizacao'):
-                resposta += f"\nDica de harmonização: {receita_dict['harmonizacao']}\n"
-            
-            if receita_dict.get('beneficios_funcionais'):
-                resposta += "\nBenefícios funcionais:\n"
-                for b in receita_dict['beneficios_funcionais']:
-                    resposta += f"• {b}\n"
+                resposta += f"\nDica de harmonização: {receita_dict['harmonizacao']}"
             
             return resposta
             
         except json.JSONDecodeError:
             st.error("Não foi possível salvar a receita no banco de dados.")
-            return response
+            # Retorna a resposta em formato natural mesmo se falhar ao salvar
+            return "Desculpe, tive um problema ao salvar a receita, mas aqui está ela em formato texto:\n\n" + response
             
     except Exception as e:
         return f"Desculpe, ocorreu um erro ao gerar a receita: {str(e)}"

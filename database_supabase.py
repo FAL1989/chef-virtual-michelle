@@ -213,13 +213,13 @@ class ReceitasDB:
             query = clean_search_query(query)
             st.write("DEBUG - Query limpa e normalizada:", query)
             
-            # Busca por título usando texto simples
-            data = self.supabase.table('receitas').select('*').textcontains('titulo', query).execute()
+            # Busca por título usando ilike
+            data = self.supabase.table('receitas').select('*').ilike('titulo', f'%{query}%').execute()
             st.write("DEBUG - Dados retornados do Supabase (busca por título):", data.data)
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
-                data = self.supabase.table('receitas').select('*').textcontains('ingredientes', query).execute()
+                data = self.supabase.table('receitas').select('*').ilike('ingredientes', f'%{query}%').execute()
                 st.write("DEBUG - Dados retornados do Supabase (busca por ingredientes):", data.data)
             
             return [ReceitaAdapter.to_chat_format(r) for r in data.data]
