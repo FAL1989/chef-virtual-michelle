@@ -91,26 +91,53 @@ class ReceitasDB:
 
     def _converter_formato_db(self, receita_db: Dict) -> Dict:
         """Converte o formato do banco para o formato da aplicação"""
-        return {
-            'titulo': receita_db.get('titulo', ''),
-            'descricao': receita_db.get('descricao', ''),
-            'utensilios': receita_db.get('utensilios', ''),
-            'ingredientes': receita_db.get('ingredientes', '').split('\n') if receita_db.get('ingredientes') else [],
-            'modo_preparo': receita_db.get('modo_preparo', '').split('\n') if receita_db.get('modo_preparo') else [],
-            'tempo_preparo': receita_db.get('tempo_preparo', ''),
-            'porcoes': str(receita_db.get('porcoes', '')),
-            'dificuldade': receita_db.get('dificuldade', ''),
-            'harmonizacao': receita_db.get('harmonizacao', ''),
-            'informacoes_nutricionais': {
-                'calorias': receita_db.get('calorias', '0'),
-                'proteinas': receita_db.get('proteinas', '0'),
-                'carboidratos': receita_db.get('carboidratos', '0'),
-                'gorduras': receita_db.get('gorduras', '0'),
-                'fibras': receita_db.get('fibras', '0')
-            },
-            'beneficios_funcionais': [],  # Será preenchido em uma consulta separada
-            'dicas': []  # Será preenchido em uma consulta separada
-        }
+        logger.info(f"Convertendo receita: {receita_db}")
+        try:
+            receita_convertida = {
+                'titulo': str(receita_db.get('titulo', '')),
+                'descricao': str(receita_db.get('descricao', '')),
+                'utensilios': str(receita_db.get('utensilios', '')),
+                'ingredientes': str(receita_db.get('ingredientes', '')).split('\n') if receita_db.get('ingredientes') else [],
+                'modo_preparo': str(receita_db.get('modo_preparo', '')).split('\n') if receita_db.get('modo_preparo') else [],
+                'tempo_preparo': str(receita_db.get('tempo_preparo', '')),
+                'porcoes': str(receita_db.get('porcoes', '')),
+                'dificuldade': str(receita_db.get('dificuldade', '')),
+                'harmonizacao': str(receita_db.get('harmonizacao', '')),
+                'informacoes_nutricionais': {
+                    'calorias': str(receita_db.get('calorias', '0')),
+                    'proteinas': str(receita_db.get('proteinas', '0')),
+                    'carboidratos': str(receita_db.get('carboidratos', '0')),
+                    'gorduras': str(receita_db.get('gorduras', '0')),
+                    'fibras': str(receita_db.get('fibras', '0'))
+                },
+                'beneficios_funcionais': [],  # Será preenchido em uma consulta separada
+                'dicas': []  # Será preenchido em uma consulta separada
+            }
+            logger.info(f"Receita convertida: {receita_convertida}")
+            return receita_convertida
+        except Exception as e:
+            logger.error(f"Erro ao converter receita: {e}")
+            # Retorna um dicionário vazio mas com a estrutura correta
+            return {
+                'titulo': '',
+                'descricao': '',
+                'utensilios': '',
+                'ingredientes': [],
+                'modo_preparo': [],
+                'tempo_preparo': '',
+                'porcoes': '',
+                'dificuldade': '',
+                'harmonizacao': '',
+                'informacoes_nutricionais': {
+                    'calorias': '0',
+                    'proteinas': '0',
+                    'carboidratos': '0',
+                    'gorduras': '0',
+                    'fibras': '0'
+                },
+                'beneficios_funcionais': [],
+                'dicas': []
+            }
 
     def adicionar_receita(self, receita: Dict) -> bool:
         """Adiciona uma nova receita ao banco de dados"""
@@ -150,8 +177,13 @@ class ReceitasDB:
                 # Retorna todas as receitas
                 data = self.supabase.table('receitas').select('*').execute()
             
+            logger.info(f"Dados brutos do Supabase: {data.data}")
+            
             # Converte cada receita para o formato esperado
-            return [self._converter_formato_db(receita) for receita in data.data]
+            receitas = [self._converter_formato_db(receita) for receita in data.data]
+            logger.info(f"Dados convertidos: {receitas}")
+            
+            return receitas
         except Exception as e:
             logger.error(f"Erro ao buscar receitas: {e}")
             return []
