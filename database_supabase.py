@@ -18,11 +18,22 @@ class DatabaseError(Exception):
 class ReceitasDB:
     def __init__(self):
         """Inicializa a conexão com o banco de dados"""
-        self.supabase = create_client(
-            os.getenv("SUPABASE_URL", ""),
-            os.getenv("SUPABASE_KEY", "")
-        )
-        self._cache = {}
+        try:
+            url = os.getenv("SUPABASE_URL")
+            key = os.getenv("SUPABASE_KEY")
+            
+            if not url or not key:
+                st.error("⚠️ Erro: Variáveis de ambiente SUPABASE_URL e SUPABASE_KEY não configuradas!")
+                st.info("Por favor, configure as variáveis de ambiente no arquivo .env ou nas configurações do Streamlit Cloud.")
+                st.stop()
+            
+            self.supabase = create_client(url, key)
+            self._cache = {}
+            
+        except Exception as e:
+            st.error("⚠️ Erro ao conectar com o banco de dados!")
+            st.info("Verifique se as credenciais do Supabase estão corretas.")
+            st.stop()
     
     def _normalizar_texto(self, texto: str) -> str:
         """Normaliza o texto removendo acentos e convertendo para minúsculo"""
