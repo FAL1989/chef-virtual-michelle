@@ -463,3 +463,6 @@ class ReceitaAdapter:
         except Exception as e:
             st.error(f"Erro ao converter para formato chat: {str(e)}")
             return {} 
+
+# Opcional: criar um alias para manter consistência
+SupabaseDB = ReceitasDB 

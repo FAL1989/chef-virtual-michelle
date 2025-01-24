@@ -2,7 +2,8 @@ import streamlit as st
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-from database_supabase import ReceitasDB
+from database_supabase import ReceitasDB as SupabaseDB
+from database_interface import DatabaseInterface
 import json
 from datetime import datetime
 import httpx
@@ -537,8 +538,9 @@ def init_app(db: DatabaseInterface) -> None:
 def get_database() -> DatabaseInterface:
     db_type = st.secrets.get("DATABASE_TYPE", "supabase")
     if db_type == "sqlite":
+        from database import SQLiteDB
         return SQLiteDB()
-    return SupabaseDB()
+    return SupabaseDB()  # Usando o alias SupabaseDB
 
 def main():
     """Função principal do aplicativo"""
