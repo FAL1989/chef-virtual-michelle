@@ -153,24 +153,23 @@ def render_recipe_card(recipe: Dict) -> None:
 def render_sidebar(db: ReceitasDB):
     """Renderiza a barra lateral"""
     with st.sidebar:
-        st.header("Filtros")
-        busca = st.text_input("Buscar receitas existentes:")
+        st.title("🔍 Busca")
+        busca = st.text_input("Digite sua busca:", key="busca")
+        
         if busca:
-            receitas = db.buscar_receitas_cached(busca)  # Usando versão com cache
+            receitas = ReceitasDB.buscar_receitas_cached(busca)  # Usando método estático
             if receitas:
                 st.success(f"Encontradas {len(receitas)} receitas!")
-                for receita in receitas:
-                    render_recipe_card(receita)
             else:
-                st.info("Nenhuma receita encontrada.")
+                st.warning("Nenhuma receita encontrada.")
+        else:
+            receitas = ReceitasDB.exportar_receitas_cached()  # Usando método estático
+            if receitas:
+                st.success(f"Total de {len(receitas)} receitas!")
+            else:
+                st.warning("Nenhuma receita encontrada.")
         
-        st.markdown("---")
-        st.header("Exportar Conversa")
-        export_history()
-        
-        if st.button("Limpar Histórico"):
-            st.session_state.messages = []
-            st.success("Histórico limpo com sucesso!")
+        return receitas
 
 def export_history():
     """Exporta o histórico da conversa para um arquivo"""
