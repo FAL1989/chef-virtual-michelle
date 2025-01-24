@@ -5,28 +5,28 @@ from typing import List, Dict
 
 SQL_CREATE_TABLES = """
 -- Tabela de receitas
-create table if not exists receitas (
+drop table if exists receitas cascade;
+
+create table receitas (
     id uuid default uuid_generate_v4() primary key,
     titulo text not null,
     descricao text,
-    beneficios_funcionais jsonb,
-    categoria text,
-    ingredientes jsonb not null,
-    modo_preparo jsonb not null,
+    utensilios text,
+    ingredientes text,
+    modo_preparo text,
     tempo_preparo text,
     porcoes text,
     dificuldade text,
-    informacoes_nutricionais jsonb,
-    utensilios text,
-    dicas jsonb,
     harmonizacao text,
+    informacoes_nutricionais jsonb default '{}'::jsonb,
+    beneficios_funcionais jsonb default '[]'::jsonb,
+    dicas jsonb default '[]'::jsonb,
     created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
 -- Criar índices para melhorar a performance das buscas
 create index if not exists idx_receitas_titulo on receitas using gin (to_tsvector('portuguese', titulo));
 create index if not exists idx_receitas_descricao on receitas using gin (to_tsvector('portuguese', descricao));
-create index if not exists idx_receitas_categoria on receitas (categoria);
 """
 
 def criar_tabelas(db: ReceitasDB):
@@ -55,24 +55,23 @@ def converter_formato_receita(receita: Dict) -> Dict:
     
     return {
         'titulo': receita.get('titulo', ''),
-        'descricao': '',  # Campo não existia no formato antigo
-        'beneficios_funcionais': [],  # Campo não existia no formato antigo
-        'categoria': '',  # Campo não existia no formato antigo
-        'ingredientes': ingredientes,
-        'modo_preparo': modo_preparo,
-        'tempo_preparo': '',  # Campo não existia no formato antigo
-        'porcoes': '',  # Campo não existia no formato antigo
-        'dificuldade': '',  # Campo não existia no formato antigo
+        'descricao': receita.get('descricao', ''),
+        'utensilios': receita.get('utensilios', ''),
+        'ingredientes': '\n'.join(ingredientes),
+        'modo_preparo': '\n'.join(modo_preparo),
+        'tempo_preparo': receita.get('tempo_preparo', ''),
+        'porcoes': str(receita.get('porcoes', '')),
+        'dificuldade': receita.get('dificuldade', ''),
+        'harmonizacao': receita.get('harmonizacao', ''),
         'informacoes_nutricionais': {
-            'calorias': '',
-            'proteinas': '',
-            'carboidratos': '',
-            'gorduras': '',
-            'fibras': ''
+            'calorias': str(receita.get('calorias', '0')),
+            'proteinas': str(receita.get('proteinas', '0')),
+            'carboidratos': str(receita.get('carboidratos', '0')),
+            'gorduras': str(receita.get('gorduras', '0')),
+            'fibras': str(receita.get('fibras', '0'))
         },
-        'utensilios': '',  # Campo não existia no formato antigo
-        'dicas': [],  # Campo não existia no formato antigo
-        'harmonizacao': ''  # Campo não existia no formato antigo
+        'beneficios_funcionais': receita.get('beneficios_funcionais', []),
+        'dicas': receita.get('dicas', [])
     }
 
 def carregar_dados_sqlite() -> List[Dict]:
