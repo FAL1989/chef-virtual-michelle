@@ -251,7 +251,7 @@ class ReceitasDB:
             # Cria uma nova instância para cada busca
             db = ReceitasDB()
             
-            # Faz a busca e guarda os resultados
+            # Faz a busca direta sem chamar o método cached novamente
             resultados = db.buscar_receitas(query)
             
             # Mostra os resultados mesmo com cache
@@ -386,6 +386,7 @@ class ReceitaAdapter:
                     dicas = []
             
             return {
+                'id': str(receita_db.get('id', '')).strip(),  # Mantém o ID na conversão
                 'titulo': str(receita_db.get('titulo', '')).strip().upper(),
                 'descricao': str(receita_db.get('descricao', '')).strip(),
                 'ingredientes': ingredientes,
