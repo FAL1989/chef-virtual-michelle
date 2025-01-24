@@ -2,13 +2,18 @@ import streamlit as st
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-from database_supabase import ReceitasDB as SupabaseDB
+from database_supabase import ReceitasDB, SupabaseDB
 from database_interface import DatabaseInterface
 import json
 from datetime import datetime
 import httpx
 from typing import List, Dict, Optional
 from abc import ABC, abstractmethod
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configuração da página
 st.set_page_config(
@@ -50,6 +55,8 @@ def init_session_state():
         st.session_state.messages = []
     if "last_search" not in st.session_state:
         st.session_state.last_search = None
+    if "user_input" not in st.session_state:
+        st.session_state.user_input = ""
 
 def format_recipe(recipe: Dict) -> str:
     """Formata uma receita para exibição"""
@@ -610,8 +617,8 @@ def main():
     # Renderiza o histórico de mensagens
     render_message_history()
     
-    # Processa a entrada do usuário
-    process_user_input(client, db)
+    # Campo de entrada do usuário
+    st.text_input("Digite sua mensagem:", key="user_input", on_change=lambda: process_user_input(client, db))
     
     # Área de busca (colapsada por padrão)
     with st.expander("🔍 Buscar no banco de receitas"):
