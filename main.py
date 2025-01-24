@@ -270,6 +270,24 @@ def render_message_history():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+def extract_search_terms(prompt: str) -> str:
+    """Extrai termos de busca de uma pergunta"""
+    # Palavras que indicam busca por receita
+    recipe_indicators = [
+        'receita', 'receitas', 'como fazer', 'como preparar',
+        'tem alguma', 'existe alguma', 'sabe fazer', 'conhece'
+    ]
+    
+    # Remove pontuação e converte para minúsculas
+    prompt = ''.join(c.lower() for c in prompt if c.isalnum() or c.isspace())
+    
+    # Se a pergunta contém indicadores de receita, remove-os
+    for indicator in recipe_indicators:
+        if indicator in prompt:
+            prompt = prompt.replace(indicator, '')
+    
+    return prompt.strip()
+
 def process_user_input(client: OpenAI, db: ReceitasDB):
     """Processa a entrada do usuário"""
     if prompt := st.chat_input("Digite aqui sua pergunta ou ingredientes:"):
@@ -279,7 +297,9 @@ def process_user_input(client: OpenAI, db: ReceitasDB):
 
         with st.chat_message("assistant"):
             with st.spinner("Processando sua solicitação..."):
-                receitas_encontradas = db.buscar_receitas(prompt)
+                # Extrai termos de busca da pergunta
+                search_terms = extract_search_terms(prompt)
+                receitas_encontradas = db.buscar_receitas(search_terms)
                 
                 if receitas_encontradas:
                     resposta = "Encontrei algumas receitas que podem te ajudar!\n\n"
