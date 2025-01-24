@@ -249,11 +249,26 @@ class ReceitasDB(DatabaseInterface):
             if not query:
                 data = self.supabase.table("receitas").select("*").execute()
             else:
-                # Busca usando match parcial no título (case insensitive)
+                # Busca usando match parcial no título ou ingredientes
+                query_upper = query.strip().upper()
                 data = (self.supabase.table("receitas")
                        .select("*")
-                       .ilike("titulo", f"%{query.strip().upper()}%")  # Busca parcial em maiúsculo
+                       .ilike("titulo", f"%{query_upper}%")
                        .execute())
+
+                # Se não encontrou nada, tenta buscar nos ingredientes
+                if not data.data:
+                    data = (self.supabase.table("receitas")
+                           .select("*")
+                           .ilike("ingredientes", f"%{query_upper}%")
+                           .execute())
+
+                # Se ainda não encontrou, tenta buscar na descrição
+                if not data.data:
+                    data = (self.supabase.table("receitas")
+                           .select("*")
+                           .ilike("descricao", f"%{query_upper}%")
+                           .execute())
 
             # Converte para o formato do chat e filtra valores None
             receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data if r]
@@ -277,16 +292,24 @@ class ReceitasDB(DatabaseInterface):
             logger.info(f"Buscando receitas com query: {query}")
             
             # Busca usando a sintaxe correta do Supabase
+            query_upper = query.strip().upper()
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .ilike('titulo', f'%{query}%')
+                   .ilike('titulo', f'%{query_upper}%')
                    .execute())
             
-            # Se não encontrou por título, tenta por ingredientes
+            # Se não encontrou nada, tenta buscar nos ingredientes
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .ilike('ingredientes', f'%{query}%')
+                       .ilike('ingredientes', f'%{query_upper}%')
+                       .execute())
+            
+            # Se ainda não encontrou, tenta buscar na descrição
+            if not data.data:
+                data = (self.supabase.table('receitas')
+                       .select('*')
+                       .ilike('descricao', f'%{query_upper}%')
                        .execute())
             
             # Converte para o formato do chat
