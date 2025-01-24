@@ -186,6 +186,14 @@ class ReceitasDB:
             # Converte cada receita para o formato esperado
             receitas = []
             for receita in data.data:
+                # Se a receita vier como string, tenta converter para dict
+                if isinstance(receita, str):
+                    try:
+                        receita = json.loads(receita)
+                    except json.JSONDecodeError:
+                        st.error(f"Erro ao decodificar receita: {receita}")
+                        continue
+                
                 receita_convertida = self._converter_formato_db(receita)
                 if receita_convertida:
                     receitas.append(receita_convertida)
@@ -213,8 +221,25 @@ class ReceitasDB:
         """Exporta todas as receitas do banco de dados"""
         try:
             data = self.supabase.table('receitas').select('*').execute()
+            st.write("DEBUG - Dados brutos do Supabase:", data.data)
+            
             # Converte cada receita para o formato esperado
-            return [self._converter_formato_db(receita) for receita in data.data]
+            receitas = []
+            for receita in data.data:
+                # Se a receita vier como string, tenta converter para dict
+                if isinstance(receita, str):
+                    try:
+                        receita = json.loads(receita)
+                    except json.JSONDecodeError:
+                        st.error(f"Erro ao decodificar receita: {receita}")
+                        continue
+                
+                receita_convertida = self._converter_formato_db(receita)
+                if receita_convertida:
+                    receitas.append(receita_convertida)
+            
+            st.write("DEBUG - Dados convertidos:", receitas)
+            return receitas
         except Exception as e:
             logger.error(f"Erro ao exportar receitas: {e}")
             return []
