@@ -144,10 +144,7 @@ def render_recipe_preview(recipe: Dict) -> None:
                 
                 if receita_id and receita_id not in ['erro', 'sem_id']:
                     try:
-                        # Tenta converter o ID para inteiro
-                        receita_id = int(receita_id)
-                        st.write("DEBUG - ID convertido:", receita_id)
-                        
+                        # Usa o ID diretamente como UUID
                         receita_completa = db.buscar_receita_por_id(receita_id)
                         st.write("DEBUG - Receita completa retornada:", receita_completa is not None)
                         
@@ -155,8 +152,9 @@ def render_recipe_preview(recipe: Dict) -> None:
                             render_recipe_card(receita_completa)
                         else:
                             st.error("Não foi possível carregar a receita completa.")
-                    except ValueError as e:
-                        st.error(f"ID da receita inválido: {str(e)}")
+                    except Exception as e:
+                        st.error(f"Erro ao buscar receita: {str(e)}")
+                        st.write("DEBUG - Stack trace completo:", str(e))
                 else:
                     st.warning(f"Esta receita não está disponível para visualização completa. ID: {receita_id}")
     except Exception as e:

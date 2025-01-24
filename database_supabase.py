@@ -215,12 +215,9 @@ class ReceitasDB:
             return None
 
     def buscar_receita_por_id(self, receita_id: str) -> Optional[Dict]:
-        """Busca uma receita específica pelo ID"""
+        """Busca uma receita específica pelo ID (UUID)"""
         try:
             st.write("DEBUG - Iniciando busca por ID:", receita_id)
-            
-            # Garante que o ID seja string e limpo
-            receita_id = str(receita_id).strip()
             
             # Faz a busca no Supabase usando o ID como string
             data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
