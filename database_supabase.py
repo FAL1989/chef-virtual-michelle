@@ -103,6 +103,21 @@ class ReceitasDB:
                 st.error("Receita sem título")
                 return None
                 
+            # Converte informações nutricionais de JSONB para dict
+            info_nutri = receita_db.get('informacoes_nutricionais', {})
+            if isinstance(info_nutri, str):
+                info_nutri = json.loads(info_nutri)
+            
+            # Converte benefícios funcionais de JSONB para list
+            beneficios = receita_db.get('beneficios_funcionais', [])
+            if isinstance(beneficios, str):
+                beneficios = json.loads(beneficios)
+            
+            # Converte dicas de JSONB para list
+            dicas = receita_db.get('dicas', [])
+            if isinstance(dicas, str):
+                dicas = json.loads(dicas)
+            
             receita_convertida = {
                 'titulo': str(receita_db.get('titulo', '')),
                 'descricao': str(receita_db.get('descricao', '')),
@@ -113,15 +128,9 @@ class ReceitasDB:
                 'porcoes': str(receita_db.get('porcoes', '')),
                 'dificuldade': str(receita_db.get('dificuldade', '')),
                 'harmonizacao': str(receita_db.get('harmonizacao', '')),
-                'informacoes_nutricionais': {
-                    'calorias': str(receita_db.get('calorias', '0')),
-                    'proteinas': str(receita_db.get('proteinas', '0')),
-                    'carboidratos': str(receita_db.get('carboidratos', '0')),
-                    'gorduras': str(receita_db.get('gorduras', '0')),
-                    'fibras': str(receita_db.get('fibras', '0'))
-                },
-                'beneficios_funcionais': [],  # Será preenchido em uma consulta separada
-                'dicas': []  # Será preenchido em uma consulta separada
+                'informacoes_nutricionais': info_nutri,
+                'beneficios_funcionais': beneficios,
+                'dicas': dicas
             }
             
             st.write("DEBUG - Receita convertida:", receita_convertida)
