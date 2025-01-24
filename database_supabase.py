@@ -111,6 +111,8 @@ class ReceitasDB:
     def buscar_receitas(self, query: str = None) -> List[Dict]:
         """Busca receitas no banco de dados por título ou ingredientes"""
         try:
+            st.write("DEBUG - Iniciando busca no banco. Query:", query)
+            
             if not query:
                 data = self.supabase.table('receitas').select('*').execute()
                 st.write("DEBUG - Dados retornados (sem query):", data.data)
@@ -143,9 +145,13 @@ class ReceitasDB:
             # Cria resumo das receitas encontradas e filtra os inválidos
             receitas = []
             for receita in data.data:
+                st.write("DEBUG - Processando receita:", receita.get('id'))
                 resumo = self._criar_resumo_receita(receita)
                 if resumo is not None:  # Só adiciona se o resumo for válido
+                    st.write("DEBUG - Resumo válido criado:", resumo)
                     receitas.append(resumo)
+                else:
+                    st.warning(f"Resumo inválido para receita {receita.get('id')}")
             
             st.write(f"DEBUG - Encontradas {len(receitas)} receitas válidas")
             st.write("DEBUG - Resumos criados:", receitas)
@@ -248,11 +254,21 @@ class ReceitasDB:
     def buscar_receitas_cached(query: str = None) -> List[Dict]:
         """Busca receitas no banco de dados com cache"""
         try:
+            st.write("DEBUG - Iniciando busca com cache. Query:", query)
+            
             # Cria uma nova instância para cada busca
             db = ReceitasDB()
-            return db.buscar_receitas(query)
+            
+            # Faz a busca e guarda os resultados
+            resultados = db.buscar_receitas(query)
+            
+            # Mostra os resultados mesmo com cache
+            st.write("DEBUG - Resultados do cache:", resultados)
+            
+            return resultados
         except Exception as e:
-            logger.error(f"Erro ao buscar receitas: {e}")
+            st.error(f"Erro ao buscar receitas (cache): {str(e)}")
+            st.write("DEBUG - Stack trace completo:", str(e))
             return []
 
     def exportar_receitas(self) -> List[Dict]:
