@@ -199,6 +199,26 @@ class ReceitasDB(DatabaseInterface):
             logger.error(f"Erro ao adicionar receita: {e}")
             return False
 
+    def verificar_estrutura(self):
+        """Verifica a estrutura atual dos dados no Supabase"""
+        try:
+            # Busca uma receita qualquer
+            data = self.supabase.table('receitas').select('*').limit(1).execute()
+            
+            if data and data.data:
+                receita = data.data[0]
+                st.write("DEBUG - Estrutura da receita:")
+                st.write("Tipo de dados por campo:")
+                for campo, valor in receita.items():
+                    st.write(f"{campo}: {type(valor)}")
+                st.write("\nValores:")
+                st.write(receita)
+            else:
+                st.warning("Nenhuma receita encontrada")
+                
+        except Exception as e:
+            st.error(f"Erro ao verificar estrutura: {str(e)}")
+            
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def buscar_receitas(self, query: str) -> List[Dict]:
         """Busca receitas no banco de dados"""
@@ -210,24 +230,27 @@ class ReceitasDB(DatabaseInterface):
             query = clean_search_query(query)
             logger.info(f"Buscando receitas com query: {query}")
             
-            # Busca usando filter com cast para text
+            # Verifica a estrutura dos dados primeiro
+            self.verificar_estrutura()
+            
+            # Busca usando filter com cast explícito para text
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .filter('titulo', 'ilike', f'%{query}%')
+                   .filter('titulo::text', 'ilike', f'%{query}%')
                    .execute())
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .filter('ingredientes', 'ilike', f'%{query}%')
+                       .filter('ingredientes::text', 'ilike', f'%{query}%')
                        .execute())
             
             # Se ainda não encontrou, tenta na descrição
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .filter('descricao', 'ilike', f'%{query}%')
+                       .filter('descricao::text', 'ilike', f'%{query}%')
                        .execute())
             
             # Combina os resultados removendo duplicatas por ID
