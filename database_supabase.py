@@ -169,8 +169,8 @@ class ReceitasDB:
         """Busca receitas no banco de dados"""
         try:
             if query:
-                # Busca por título usando textSearch do Supabase
-                data = self.supabase.table('receitas').select('*').textSearch('titulo', query).execute()
+                # Busca por título usando a sintaxe correta do Supabase
+                data = self.supabase.table('receitas').select('*').ilike('titulo', f'%{query}%').execute()
                 
                 st.write("DEBUG - Query:", query)
                 st.write("DEBUG - Dados brutos do Supabase:", data.data)
@@ -182,14 +182,6 @@ class ReceitasDB:
                 # Converte cada receita para o formato esperado
                 receitas = []
                 for receita in data.data:
-                    # Se a receita vier como string, tenta converter para dict
-                    if isinstance(receita, str):
-                        try:
-                            receita = json.loads(receita)
-                        except json.JSONDecodeError:
-                            st.error(f"Erro ao decodificar receita: {receita}")
-                            continue
-                    
                     receita_convertida = self._converter_formato_db(receita)
                     if receita_convertida:
                         receitas.append(receita_convertida)
