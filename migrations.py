@@ -32,12 +32,12 @@ create index if not exists idx_receitas_descricao on receitas using gin (to_tsve
 def criar_tabelas(db: ReceitasDB):
     """Cria as tabelas no Supabase"""
     try:
-        db.supabase.table('receitas').select('id').limit(1).execute()
-        print("Tabelas já existem!")
-    except Exception as e:
-        print("Criando tabelas...")
+        print("Recriando tabelas...")
         db.supabase.sql(SQL_CREATE_TABLES).execute()
         print("Tabelas criadas com sucesso!")
+    except Exception as e:
+        print(f"Erro ao criar tabelas: {e}")
+        raise
 
 def converter_formato_receita(receita: Dict) -> Dict:
     """Converte o formato antigo para o novo formato"""
