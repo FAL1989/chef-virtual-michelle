@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from supabase import create_client, Client
 import streamlit as st
+import os
 
 # Configuração do logging
 logging.basicConfig(
@@ -20,14 +21,14 @@ class ReceitasDB:
     def __init__(self):
         """Inicializa a conexão com o Supabase"""
         try:
-            url: str = st.secrets["SUPABASE_URL"]
-            key: str = st.secrets["SUPABASE_KEY"]
+            url = st.secrets["supabase_url"]
+            key = st.secrets["supabase_key"]
             self.supabase: Client = create_client(url, key)
             logger.info("Conexão estabelecida com Supabase")
             self.criar_tabelas()
         except Exception as e:
-            logger.error(f"Erro ao conectar ao Supabase: {e}")
-            raise DatabaseError(f"Erro ao conectar ao Supabase: {e}")
+            logger.error(f"Erro ao conectar com Supabase: {e}")
+            raise
 
     def criar_tabelas(self):
         """
@@ -92,54 +93,26 @@ class ReceitasDB:
         pass
 
     def adicionar_receita(self, receita: Dict) -> bool:
-        """Adiciona uma receita ao banco de dados"""
+        """Adiciona uma nova receita ao banco de dados"""
         try:
-            # Prepara os dados da receita
-            dados_receita = {
-                'titulo': str(receita['titulo']),
-                'descricao': str(receita.get('descricao', '')),
-                'utensilios': str(receita.get('utensilios', '')),
-                'ingredientes': '\n'.join(receita['ingredientes']) if isinstance(receita['ingredientes'], list) else str(receita['ingredientes']),
-                'modo_preparo': '.\n'.join(receita['modo_preparo']) + '.' if isinstance(receita['modo_preparo'], list) else str(receita['modo_preparo']),
-                'tempo_preparo': str(receita.get('tempo_preparo', '')),
-                'porcoes': int(receita.get('porcoes', 0)),
-                'dificuldade': str(receita.get('dificuldade', '')),
-                'harmonizacao': str(receita.get('harmonizacao', '')),
-            }
-
-            # Adiciona informações nutricionais
+            # Garante que os campos numéricos sejam 0 quando vazios
             info_nutri = receita.get('informacoes_nutricionais', {})
-            dados_receita.update({
-                'calorias': str(info_nutri.get('calorias', '')),
-                'proteinas': str(info_nutri.get('proteinas', '')),
-                'carboidratos': str(info_nutri.get('carboidratos', '')),
-                'gorduras': str(info_nutri.get('gorduras', '')),
-                'fibras': str(info_nutri.get('fibras', ''))
-            })
+            for campo in ['calorias', 'proteinas', 'carboidratos', 'gorduras', 'fibras']:
+                valor = info_nutri.get(campo, '')
+                info_nutri[campo] = 0 if valor == '' else float(valor)
+            receita['informacoes_nutricionais'] = info_nutri
 
-            # Insere a receita e obtém o ID
-            result = self.supabase.table('receitas').insert(dados_receita).execute()
-            receita_id = result.data[0]['id']
+            # Garante que arrays sejam listas vazias quando nulos
+            for campo in ['ingredientes', 'modo_preparo', 'beneficios_funcionais', 'dicas']:
+                if not receita.get(campo):
+                    receita[campo] = []
 
-            # Adiciona dicas
-            if 'dicas' in receita and receita['dicas']:
-                dicas = receita['dicas'] if isinstance(receita['dicas'], list) else [receita['dicas']]
-                for dica in dicas:
-                    self.supabase.table('dicas').insert({
-                        'receita_id': receita_id,
-                        'dica': str(dica)
-                    }).execute()
+            # Garante que strings sejam vazias quando nulas
+            for campo in ['titulo', 'descricao', 'categoria', 'tempo_preparo', 'porcoes', 'dificuldade', 'utensilios', 'harmonizacao']:
+                if not receita.get(campo):
+                    receita[campo] = ''
 
-            # Adiciona benefícios funcionais
-            if 'beneficios_funcionais' in receita and receita['beneficios_funcionais']:
-                beneficios = receita['beneficios_funcionais'] if isinstance(receita['beneficios_funcionais'], list) else [receita['beneficios_funcionais']]
-                for beneficio in beneficios:
-                    self.supabase.table('beneficios_funcionais').insert({
-                        'receita_id': receita_id,
-                        'beneficio': str(beneficio)
-                    }).execute()
-
-            logger.info(f"Receita '{dados_receita['titulo']}' adicionada com sucesso")
+            data = self.supabase.table('receitas').insert(receita).execute()
             return True
         except Exception as e:
             logger.error(f"Erro ao adicionar receita: {e}")
@@ -189,10 +162,22 @@ class ReceitasDB:
             logger.error(f"Erro ao buscar receitas: {e}")
             return []
 
-    @st.cache_data(ttl=3600)  # Cache por 1 hora
-    def buscar_receitas_cached(self, termo: str = None) -> List[Dict]:
+    @st.cache_data(ttl=3600)
+    def buscar_receitas_cached(self, query: str = None) -> List[Dict]:
         """Busca receitas no banco de dados com cache"""
-        return self.buscar_receitas(termo)
+        try:
+            if query:
+                # Busca por título ou descrição
+                data = self.supabase.table('receitas').select('*').or_(
+                    f"titulo.ilike.%{query}%,descricao.ilike.%{query}%"
+                ).execute()
+            else:
+                # Retorna todas as receitas
+                data = self.supabase.table('receitas').select('*').execute()
+            return data.data
+        except Exception as e:
+            logger.error(f"Erro ao buscar receitas: {e}")
+            return []
 
     def exportar_receitas(self, formato: str = 'json') -> Union[str, Dict]:
         """Exporta todas as receitas em um formato específico"""
@@ -231,7 +216,12 @@ class ReceitasDB:
             logger.error(f"Erro ao exportar receitas: {e}")
             return "" if formato == 'markdown' else "{}"
 
-    @st.cache_data(ttl=3600)  # Cache por 1 hora
-    def exportar_receitas_cached(self, formato: str = 'json') -> Union[str, Dict]:
-        """Exporta todas as receitas em um formato específico com cache"""
-        return self.exportar_receitas(formato) 
+    @st.cache_data(ttl=3600)
+    def exportar_receitas_cached(self) -> List[Dict]:
+        """Exporta todas as receitas do banco de dados com cache"""
+        try:
+            data = self.supabase.table('receitas').select('*').execute()
+            return data.data
+        except Exception as e:
+            logger.error(f"Erro ao exportar receitas: {e}")
+            return [] 
