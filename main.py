@@ -144,6 +144,8 @@ def render_recipe_preview(recipe: Dict) -> None:
                 
                 if receita_id and receita_id not in ['erro', 'sem_id']:
                     try:
+                        # Cria uma nova instância do ReceitasDB
+                        db = ReceitasDB()
                         # Usa o ID diretamente como UUID
                         receita_completa = db.buscar_receita_por_id(receita_id)
                         st.write("DEBUG - Receita completa retornada:", receita_completa is not None)
