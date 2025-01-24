@@ -119,75 +119,67 @@ def format_recipe(recipe: Dict) -> str:
 
 def render_recipe_card(recipe: Dict) -> None:
     """Renderiza um card de receita"""
-    # Garante que a receita é um dicionário
-    if isinstance(recipe, str):
-        try:
-            recipe = json.loads(recipe)
-        except json.JSONDecodeError:
-            st.error(f"Erro ao decodificar receita: {recipe}")
+    try:
+        # Garante que a receita é um dicionário
+        if isinstance(recipe, str):
+            try:
+                recipe = json.loads(recipe)
+            except json.JSONDecodeError as e:
+                st.error(f"Erro ao decodificar receita: {str(e)}")
+                st.write("Dados recebidos:", recipe)
+                return
+        
+        # Verifica se a receita tem o formato esperado
+        if not isinstance(recipe, dict):
+            st.error(f"Formato de receita inválido. Tipo recebido: {type(recipe)}")
+            st.write("Dados recebidos:", recipe)
             return
-    
-    # Verifica se a receita tem o formato esperado
-    if not isinstance(recipe, dict) or 'titulo' not in recipe:
-        st.error("Formato de receita inválido")
-        return
-    
-    with st.container():
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.subheader(recipe['titulo'])
+            
+        if 'titulo' not in recipe:
+            st.error("Receita sem título")
+            st.write("Dados recebidos:", recipe)
+            return
+        
+        with st.container():
+            # Card principal
+            st.markdown(f"### {recipe['titulo']}")
             if recipe.get('descricao'):
                 st.write(recipe['descricao'])
             
-            # Métricas principais
-            metrics_cols = st.columns(3)
-            with metrics_cols[0]:
+            # Métricas em linha
+            cols = st.columns(3)
+            with cols[0]:
                 st.metric("⏱️ Tempo", recipe.get('tempo_preparo', 'N/A'))
-            with metrics_cols[1]:
+            with cols[1]:
                 st.metric("🍽️ Porções", recipe.get('porcoes', 'N/A'))
-            with metrics_cols[2]:
+            with cols[2]:
                 st.metric("📊 Dificuldade", recipe.get('dificuldade', 'N/A'))
-        
-        with col2:
-            # Informações nutricionais em formato compacto
+            
+            # Informações nutricionais
             if recipe.get('informacoes_nutricionais'):
-                st.write("📊 Info. Nutricional")
-                info = recipe['informacoes_nutricionais']
-                if info.get('calorias'):
-                    st.write(f"🔸 Cal: {info['calorias']}")
-                if info.get('proteinas'):
-                    st.write(f"🔸 Prot: {info['proteinas']}")
-        
-        # Expandir para ver mais detalhes
-        with st.expander("Ver receita completa"):
-            st.markdown(format_recipe(recipe))
-    st.divider()
-
-def render_sidebar(db: ReceitasDB):
-    """Renderiza a barra lateral"""
-    with st.sidebar:
-        st.title("🔍 Busca")
-        busca = st.text_input("Digite sua busca:", key="busca")
-        
-        if busca:
-            receitas = ReceitasDB.buscar_receitas_cached(busca)  # Usando método estático
-            if receitas:
-                st.success(f"Encontradas {len(receitas)} receitas!")
-            else:
-                st.warning("Nenhuma receita encontrada.")
-        else:
-            receitas = ReceitasDB.exportar_receitas_cached()  # Usando método estático
-            if receitas:
-                st.success(f"Total de {len(receitas)} receitas disponíveis")
-            else:
-                st.warning("Nenhuma receita encontrada.")
-        
-        # Renderiza as receitas encontradas
-        if receitas:
-            for receita in receitas:
-                render_recipe_card(receita)
-        
-        return receitas
+                with st.expander("📊 Informações Nutricionais"):
+                    info = recipe['informacoes_nutricionais']
+                    nutri_cols = st.columns(5)
+                    with nutri_cols[0]:
+                        st.metric("Calorias", info.get('calorias', 'N/A'))
+                    with nutri_cols[1]:
+                        st.metric("Proteínas", info.get('proteinas', 'N/A'))
+                    with nutri_cols[2]:
+                        st.metric("Carboidratos", info.get('carboidratos', 'N/A'))
+                    with nutri_cols[3]:
+                        st.metric("Gorduras", info.get('gorduras', 'N/A'))
+                    with nutri_cols[4]:
+                        st.metric("Fibras", info.get('fibras', 'N/A'))
+            
+            # Detalhes da receita
+            with st.expander("👩‍🍳 Ver receita completa"):
+                st.markdown(format_recipe(recipe))
+            
+            st.divider()
+            
+    except Exception as e:
+        st.error(f"Erro ao renderizar receita: {str(e)}")
+        st.write("Dados recebidos:", recipe)
 
 def export_history():
     """Exporta o histórico da conversa para um arquivo"""
@@ -350,18 +342,42 @@ def main():
     # Inicializa o estado da sessão
     init_session_state()
     
-    # Renderiza o título
-    st.title("Chef Virtual - Receitas da Michelle")
-    st.write("Bem-vindo! Pergunte por uma receita ou informe os ingredientes que você tem disponível.")
+    # Layout principal
+    col1, col2 = st.columns([2, 3])
     
-    # Renderiza a barra lateral
-    render_sidebar(db)
+    with col1:
+        # Barra de busca
+        st.title("🔍 Busca")
+        busca = st.text_input("Digite sua busca:", key="busca")
+        
+        if busca:
+            receitas = ReceitasDB.buscar_receitas_cached(busca)
+            if receitas:
+                st.success(f"Encontradas {len(receitas)} receitas!")
+            else:
+                st.warning("Nenhuma receita encontrada.")
+        else:
+            receitas = ReceitasDB.exportar_receitas_cached()
+            if receitas:
+                st.success(f"Total de {len(receitas)} receitas disponíveis")
+            else:
+                st.warning("Nenhuma receita encontrada.")
+        
+        # Renderiza as receitas encontradas
+        if receitas:
+            for receita in receitas:
+                render_recipe_card(receita)
     
-    # Renderiza o histórico de mensagens
-    render_message_history()
-    
-    # Processa a entrada do usuário
-    process_user_input(client, db)
+    with col2:
+        # Área do chat
+        st.title("Chef Virtual - Receitas da Michelle")
+        st.write("Bem-vindo! Pergunte por uma receita ou informe os ingredientes que você tem disponível.")
+        
+        # Renderiza o histórico de mensagens
+        render_message_history()
+        
+        # Processa a entrada do usuário
+        process_user_input(client, db)
 
 if __name__ == "__main__":
     main()
