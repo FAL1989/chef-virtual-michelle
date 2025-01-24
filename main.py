@@ -144,6 +144,9 @@ def render_recipe_preview(receita: dict):
         st.warning("Receita sem ID")
         return
         
+    # Instancia o banco de dados
+    db = ReceitasDB()
+        
     col1, col2 = st.columns([3,1])
     
     with col1:
@@ -173,56 +176,62 @@ def render_recipe_preview(receita: dict):
             
     with col2:
         if st.button("Ver receita completa", key=f"btn_{receita['id']}"):
-            receita_completa = db.buscar_receita_por_id(receita['id'])
-            if receita_completa:
-                st.markdown("---")
-                st.markdown(f"# {receita_completa['titulo']}")
-                
-                if receita_completa.get('descricao'):
-                    st.markdown(f"_{receita_completa['descricao']}_\n")
-                
-                st.markdown("## 📝 Ingredientes")
-                # Trata ingredientes como string ou lista
-                ingredientes = receita_completa['ingredientes']
-                if isinstance(ingredientes, str):
-                    ingredientes = ingredientes.split('\n')
-                elif isinstance(ingredientes, list):
-                    ingredientes = [ing.strip() for ing in ingredientes if ing.strip()]
+            try:
+                receita_completa = db.buscar_receita_por_id(receita['id'])
+                if receita_completa:
+                    st.markdown("---")
+                    st.markdown(f"# {receita_completa['titulo']}")
                     
-                for ing in ingredientes:
-                    st.markdown(f"• {ing}")
+                    if receita_completa.get('descricao'):
+                        st.markdown(f"_{receita_completa['descricao']}_\n")
                     
-                st.markdown("\n## 👩‍🍳 Modo de Preparo")
-                # Trata modo de preparo como string ou lista
-                modo_preparo = receita_completa['modo_preparo']
-                if isinstance(modo_preparo, str):
-                    modo_preparo = modo_preparo.split('\n')
-                elif isinstance(modo_preparo, list):
-                    modo_preparo = [passo.strip() for passo in modo_preparo if passo.strip()]
-                    
-                for i, passo in enumerate(modo_preparo, 1):
-                    st.markdown(f"{i}. {passo}")
-                    
-                if receita_completa.get('tempo_preparo'):
-                    st.markdown(f"\n⏱️ **Tempo de Preparo**: {receita_completa['tempo_preparo']}")
-                if receita_completa.get('porcoes'):
-                    st.markdown(f"🍽️ **Porções**: {receita_completa['porcoes']}")
-                if receita_completa.get('dificuldade'):
-                    st.markdown(f"📊 **Dificuldade**: {receita_completa['dificuldade']}")
-                    
-                if receita_completa.get('dicas'):
-                    st.markdown("\n## 💡 Dicas")
-                    dicas = receita_completa['dicas']
-                    if isinstance(dicas, str):
-                        dicas = dicas.split('\n')
-                    for dica in dicas:
-                        st.markdown(f"• {dica}")
+                    st.markdown("## 📝 Ingredientes")
+                    # Trata ingredientes como string ou lista
+                    ingredientes = receita_completa['ingredientes']
+                    if isinstance(ingredientes, str):
+                        ingredientes = ingredientes.split('\n')
+                    elif isinstance(ingredientes, list):
+                        ingredientes = [ing.strip() for ing in ingredientes if ing.strip()]
                         
-                if receita_completa.get('harmonizacao'):
-                    st.markdown("\n## 🍷 Harmonização")
-                    st.markdown(receita_completa['harmonizacao'])
-                    
-                st.markdown("---")
+                    for ing in ingredientes:
+                        st.markdown(f"• {ing}")
+                        
+                    st.markdown("\n## 👩‍🍳 Modo de Preparo")
+                    # Trata modo de preparo como string ou lista
+                    modo_preparo = receita_completa['modo_preparo']
+                    if isinstance(modo_preparo, str):
+                        modo_preparo = modo_preparo.split('\n')
+                    elif isinstance(modo_preparo, list):
+                        modo_preparo = [passo.strip() for passo in modo_preparo if passo.strip()]
+                        
+                    for i, passo in enumerate(modo_preparo, 1):
+                        st.markdown(f"{i}. {passo}")
+                        
+                    if receita_completa.get('tempo_preparo'):
+                        st.markdown(f"\n⏱️ **Tempo de Preparo**: {receita_completa['tempo_preparo']}")
+                    if receita_completa.get('porcoes'):
+                        st.markdown(f"🍽️ **Porções**: {receita_completa['porcoes']}")
+                    if receita_completa.get('dificuldade'):
+                        st.markdown(f"📊 **Dificuldade**: {receita_completa['dificuldade']}")
+                        
+                    if receita_completa.get('dicas'):
+                        st.markdown("\n## 💡 Dicas")
+                        dicas = receita_completa['dicas']
+                        if isinstance(dicas, str):
+                            dicas = dicas.split('\n')
+                        for dica in dicas:
+                            st.markdown(f"• {dica}")
+                            
+                    if receita_completa.get('harmonizacao'):
+                        st.markdown("\n## 🍷 Harmonização")
+                        st.markdown(receita_completa['harmonizacao'])
+                        
+                    st.markdown("---")
+                else:
+                    st.error("Não foi possível carregar a receita completa")
+            except Exception as e:
+                st.error(f"Erro ao carregar receita: {str(e)}")
+                logger.error(f"Erro ao carregar receita: {str(e)}")
 
 def search_recipes():
     """Interface de busca de receitas"""
