@@ -33,10 +33,11 @@ def criar_tabelas(db: ReceitasDB):
     """Cria as tabelas no Supabase"""
     try:
         print("Recriando tabelas...")
-        db.supabase.sql(SQL_CREATE_TABLES).execute()
-        print("Tabelas criadas com sucesso!")
+        # Exclui todas as receitas existentes
+        db.supabase.table('receitas').delete().neq('id', '').execute()
+        print("Tabelas limpas com sucesso!")
     except Exception as e:
-        print(f"Erro ao criar tabelas: {e}")
+        print(f"Erro ao limpar tabelas: {e}")
         raise
 
 def converter_formato_receita(receita: Dict) -> Dict:
