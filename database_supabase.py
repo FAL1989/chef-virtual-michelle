@@ -233,24 +233,24 @@ class ReceitasDB(DatabaseInterface):
             # Verifica a estrutura dos dados primeiro
             self.verificar_estrutura()
             
-            # Busca usando a sintaxe correta do Supabase
+            # Busca usando a sintaxe correta para campos JSONB
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .filter('titulo', 'ilike', f'%{query}%')
+                   .filter('titulo::text', 'ilike', f'%{query}%')
                    .execute())
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .filter('ingredientes', 'ilike', f'%{query}%')
+                       .filter('ingredientes::text', 'ilike', f'%{query}%')
                        .execute())
             
             # Se ainda não encontrou, tenta na descrição
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .filter('descricao', 'ilike', f'%{query}%')
+                       .filter('descricao::text', 'ilike', f'%{query}%')
                        .execute())
             
             # Combina os resultados removendo duplicatas por ID
