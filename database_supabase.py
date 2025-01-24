@@ -206,10 +206,10 @@ class ReceitasDB:
             # Normaliza a query
             query = query.lower().strip()
             
-            # Busca por título
+            # Busca por título usando contains
             data = (self.supabase.table('receitas')
                     .select('*')
-                    .textcontains('titulo', query)
+                    .filter('titulo', 'ilike', f'%{query}%')
                     .execute())
             
             if data.data:
@@ -218,7 +218,7 @@ class ReceitasDB:
             # Se não encontrou por título, busca nos ingredientes
             data = (self.supabase.table('receitas')
                     .select('*')
-                    .textcontains('ingredientes', query)
+                    .filter('ingredientes', 'ilike', f'%{query}%')
                     .execute())
             
             return [ReceitaAdapter.to_chat_format(r) for r in data.data]
