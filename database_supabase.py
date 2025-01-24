@@ -210,19 +210,40 @@ class ReceitasDB(DatabaseInterface):
             query = clean_search_query(query)
             logger.info(f"Buscando receitas com query: {query}")
             
-            # Busca usando ilike para case-insensitive
-            data = (self.supabase.table('receitas')
-                   .select('*')
-                   .or_(f'titulo.ilike.%{query}%,ingredientes.ilike.%{query}%,descricao.ilike.%{query}%')
-                   .execute())
+            # Busca no título
+            data_titulo = (self.supabase.table('receitas')
+                         .select('*')
+                         .ilike('titulo', f'%{query}%')
+                         .execute())
             
-            logger.info(f"Encontradas {len(data.data)} receitas")
+            # Busca nos ingredientes
+            data_ingredientes = (self.supabase.table('receitas')
+                               .select('*')
+                               .ilike('ingredientes', f'%{query}%')
+                               .execute())
             
-            # Converte e retorna os resultados
-            receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data]
+            # Busca na descrição
+            data_descricao = (self.supabase.table('receitas')
+                            .select('*')
+                            .ilike('descricao', f'%{query}%')
+                            .execute())
             
-            # Debug para verificar os resultados
+            # Combina os resultados removendo duplicatas por ID
+            receitas_dict = {}
+            
+            for data in [data_titulo, data_ingredientes, data_descricao]:
+                if data and data.data:
+                    for receita in data.data:
+                        receita_id = str(receita.get('id')).strip()
+                        if receita_id and receita_id not in receitas_dict:
+                            receitas_dict[receita_id] = receita
+            
+            # Converte para o formato do chat
+            receitas = [ReceitaAdapter.to_chat_format(r) for r in receitas_dict.values()]
+            
+            logger.info(f"Encontradas {len(receitas)} receitas")
             st.write("DEBUG - Resultados da busca:", len(receitas))
+            
             return receitas
             
         except Exception as e:
