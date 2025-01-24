@@ -201,7 +201,7 @@ class ReceitasDB(DatabaseInterface):
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def buscar_receitas(self, query: str) -> List[Dict]:
-        """Busca receitas no banco de dados usando full text search"""
+        """Busca receitas no banco de dados"""
         try:
             if not query:
                 return []
@@ -210,24 +210,24 @@ class ReceitasDB(DatabaseInterface):
             query = clean_search_query(query)
             logger.info(f"Buscando receitas com query: {query}")
             
-            # Busca usando full text search
+            # Busca usando ilike para case-insensitive
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .textSearch('titulo', query, config='portuguese')
+                   .ilike('titulo', f'%{query}%')
                    .execute())
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .textSearch('ingredientes', query, config='portuguese')
+                       .ilike('ingredientes', f'%{query}%')
                        .execute())
             
             # Se ainda não encontrou, tenta na descrição
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .textSearch('descricao', query, config='portuguese')
+                       .ilike('descricao', f'%{query}%')
                        .execute())
             
             logger.info(f"Encontradas {len(data.data)} receitas")
