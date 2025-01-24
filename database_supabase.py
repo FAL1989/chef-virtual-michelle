@@ -213,19 +213,19 @@ class ReceitasDB(DatabaseInterface):
             # Busca no título
             data_titulo = (self.supabase.table('receitas')
                          .select('*')
-                         .ilike('titulo', f'%{query}%')
+                         .like('titulo', f'%{query}%')
                          .execute())
             
             # Busca nos ingredientes
             data_ingredientes = (self.supabase.table('receitas')
                                .select('*')
-                               .ilike('ingredientes', f'%{query}%')
+                               .like('ingredientes', f'%{query}%')
                                .execute())
             
             # Busca na descrição
             data_descricao = (self.supabase.table('receitas')
                             .select('*')
-                            .ilike('descricao', f'%{query}%')
+                            .like('descricao', f'%{query}%')
                             .execute())
             
             # Combina os resultados removendo duplicatas por ID

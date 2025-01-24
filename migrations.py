@@ -24,10 +24,13 @@ create table receitas (
     created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- Criar índices para melhorar a performance das buscas
-create index if not exists idx_receitas_titulo on receitas using gin (to_tsvector('portuguese', titulo));
-create index if not exists idx_receitas_ingredientes on receitas using gin (to_tsvector('portuguese', ingredientes));
-create index if not exists idx_receitas_descricao on receitas using gin (to_tsvector('portuguese', descricao));
+-- Criar índices para busca em texto
+create index if not exists idx_receitas_titulo_gin on receitas using gin (titulo gin_trgm_ops);
+create index if not exists idx_receitas_ingredientes_gin on receitas using gin (ingredientes gin_trgm_ops);
+create index if not exists idx_receitas_descricao_gin on receitas using gin (descricao gin_trgm_ops);
+
+-- Habilitar extensão pg_trgm para busca por similaridade
+create extension if not exists pg_trgm;
 """
 
 def criar_tabelas(db: ReceitasDB):
