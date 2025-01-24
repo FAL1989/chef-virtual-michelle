@@ -233,24 +233,24 @@ class ReceitasDB(DatabaseInterface):
             # Verifica a estrutura dos dados primeiro
             self.verificar_estrutura()
             
-            # Busca usando contains para texto
+            # Busca usando eq para texto
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .contains('titulo', query)
+                   .eq('titulo', query)
                    .execute())
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .contains('ingredientes', query)
+                       .eq('ingredientes', query)
                        .execute())
             
             # Se ainda não encontrou, tenta na descrição
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .contains('descricao', query)
+                       .eq('descricao', query)
                        .execute())
             
             # Combina os resultados removendo duplicatas por ID
