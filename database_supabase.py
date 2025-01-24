@@ -143,42 +143,14 @@ class ReceitasDB:
             logger.error(f"Erro ao buscar receitas: {e}")
             return []
 
-    def exportar_receitas(self, formato: str = 'json') -> Union[str, Dict]:
-        """Exporta todas as receitas em um formato específico"""
+    def exportar_receitas(self) -> List[Dict]:
+        """Exporta todas as receitas do banco de dados"""
         try:
-            receitas = self.buscar_receitas()
-            
-            if formato == 'json':
-                return json.dumps(receitas, ensure_ascii=False, indent=2)
-            elif formato == 'markdown':
-                texto = "# Receitas da Chef Michelle\n\n"
-                texto += f"Exportado em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n"
-                
-                for receita in receitas:
-                    texto += f"## {receita['titulo']}\n\n"
-                    if receita.get('descricao'):
-                        texto += f"{receita['descricao']}\n\n"
-                    texto += "### Ingredientes\n\n"
-                    texto += f"{receita['ingredientes']}\n\n"
-                    texto += "### Modo de Preparo\n\n"
-                    texto += f"{receita['modo_preparo']}\n\n"
-                    if receita['dicas']:
-                        texto += "### Dicas\n\n"
-                        for dica in receita['dicas']:
-                            texto += f"- {dica}\n"
-                        texto += "\n"
-                    if receita['beneficios_funcionais']:
-                        texto += "### Benefícios Funcionais\n\n"
-                        for beneficio in receita['beneficios_funcionais']:
-                            texto += f"- {beneficio}\n"
-                        texto += "\n"
-                    texto += "---\n\n"
-                return texto
-            else:
-                raise ValueError(f"Formato '{formato}' não suportado")
+            data = self.supabase.table('receitas').select('*').execute()
+            return data.data
         except Exception as e:
             logger.error(f"Erro ao exportar receitas: {e}")
-            return "" if formato == 'markdown' else "{}"
+            return []
 
     @staticmethod
     @st.cache_data(ttl=3600)
