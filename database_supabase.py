@@ -169,8 +169,8 @@ class ReceitasDB:
         """Busca receitas no banco de dados"""
         try:
             if query:
-                # Busca por título ou descrição usando a sintaxe correta do Supabase
-                data = self.supabase.table('receitas').select('*').ilike('titulo', f'%{query}%').execute()
+                # Busca por título usando a sintaxe correta do Supabase
+                data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
                 
                 st.write("DEBUG - Query:", query)
                 st.write("DEBUG - Dados brutos do Supabase:", data.data)
