@@ -114,25 +114,31 @@ class ReceitasDB:
             if not query:
                 data = self.supabase.table('receitas').select('*').execute()
                 st.write("DEBUG - Dados retornados (sem query):", data.data)
-                # Filtra apenas os resumos válidos (não None)
-                return [resumo for resumo in (self._criar_resumo_receita(receita) for receita in data.data) if resumo is not None]
-
-            # Limpa e normaliza a query
-            query = query.strip().lower()
-            st.write("DEBUG - Query normalizada:", query)
-            
-            # Busca usando filter com ilike no título
-            data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
-            st.write("DEBUG - Dados retornados (busca por título):", data.data)
-            
-            # Se não encontrou no título, tenta nos ingredientes
-            if not data.data:
-                data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
-                st.write("DEBUG - Dados retornados (busca por ingredientes):", data.data)
+            else:
+                # Limpa e normaliza a query
+                query = query.strip().lower()
+                st.write("DEBUG - Query normalizada:", query)
+                
+                # Busca usando filter com ilike no título
+                data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
+                st.write("DEBUG - Dados retornados do Supabase (busca por título):", data.data)
+                
+                # Se não encontrou no título, tenta nos ingredientes
+                if not data.data:
+                    data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
+                    st.write("DEBUG - Dados retornados do Supabase (busca por ingredientes):", data.data)
             
             if not data.data:
                 st.info("Nenhuma receita encontrada.")
                 return []
+            
+            # Verifica se os dados têm a estrutura esperada
+            for receita in data.data:
+                st.write("DEBUG - Verificando estrutura da receita:", {
+                    'id': receita.get('id'),
+                    'titulo': receita.get('titulo'),
+                    'ingredientes': receita.get('ingredientes', '')[:100] + '...' # Mostra apenas início dos ingredientes
+                })
             
             # Cria resumo das receitas encontradas e filtra os inválidos
             receitas = []
@@ -141,41 +147,42 @@ class ReceitasDB:
                 if resumo is not None:  # Só adiciona se o resumo for válido
                     receitas.append(resumo)
             
-            st.write("DEBUG - Resumos válidos criados:", receitas)
+            st.write(f"DEBUG - Encontradas {len(receitas)} receitas válidas")
+            st.write("DEBUG - Resumos criados:", receitas)
             return receitas
                 
         except Exception as e:
             st.error(f"Erro ao buscar receitas: {str(e)}")
+            st.write("DEBUG - Stack trace completo:", str(e))
             return []
 
-    def _criar_resumo_receita(self, receita: Dict) -> Dict:
+    def _criar_resumo_receita(self, receita: Dict) -> Optional[Dict]:
         """Cria um resumo da receita com apenas as informações essenciais"""
         try:
-            # Debug do objeto receita completo
-            st.write("DEBUG - Receita completa recebida:", receita)
+            st.write("DEBUG - Criando resumo para receita:", receita)
             
             # Extrai e valida o ID
             receita_id = receita.get('id')
             st.write("DEBUG - ID original:", receita_id, "Tipo:", type(receita_id))
             
             # Validação do ID
-            if receita_id is None or not str(receita_id).strip():
+            if not receita_id:  # Verifica se é None ou vazio
                 st.warning("Receita sem ID encontrada")
-                return None  # Não cria resumo para receitas sem ID
+                return None
             
-            # Mantém o ID no formato original (seja UUID ou numérico)
+            # Mantém o ID no formato original
             receita_id = str(receita_id).strip()
             st.write("DEBUG - ID validado:", receita_id)
 
             # Validação do título
             titulo = str(receita.get('titulo', '')).strip().upper()
             if not titulo:
-                st.warning("Receita sem título encontrada")
+                st.warning(f"Receita {receita_id} sem título encontrada")
                 return None
 
             # Extrai os ingredientes para preview
             ingredientes_raw = receita.get('ingredientes', '')
-            st.write("DEBUG - Ingredientes raw:", ingredientes_raw)
+            st.write(f"DEBUG - Ingredientes raw da receita {receita_id}:", ingredientes_raw)
             
             if isinstance(ingredientes_raw, str):
                 ingredientes = [ing.strip() for ing in ingredientes_raw.split('\n') if ing.strip()][:3]
@@ -184,21 +191,22 @@ class ReceitasDB:
             else:
                 ingredientes = []
             
-            st.write("DEBUG - Ingredientes processados:", ingredientes)
+            st.write(f"DEBUG - Ingredientes processados da receita {receita_id}:", ingredientes)
 
             resumo = {
-                'id': receita_id,  # ID no formato original
+                'id': receita_id,
                 'titulo': titulo,
                 'descricao': str(receita.get('descricao', '')).strip(),
                 'preview_ingredientes': ingredientes
             }
             
-            st.write("DEBUG - Resumo final:", resumo)
+            st.write(f"DEBUG - Resumo final da receita {receita_id}:", resumo)
             return resumo
             
         except Exception as e:
             st.error(f"Erro ao criar resumo da receita: {str(e)}")
-            return None  # Retorna None em vez de um objeto de erro
+            st.write("DEBUG - Stack trace completo:", str(e))
+            return None
 
     def buscar_receita_por_id(self, receita_id: Union[str, int]) -> Optional[Dict]:
         """Busca uma receita específica pelo ID"""
