@@ -243,11 +243,18 @@ class ReceitasDB(DatabaseInterface):
             query = clean_search_query(query)
             logger.info(f"Buscando receitas com query: {query}")
             
-            # Busca usando a sintaxe correta para campos TEXT
+            # Busca usando a sintaxe correta do Supabase
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .or_(f"titulo.ilike.%{query}%,ingredientes.ilike.%{query}%,descricao.ilike.%{query}%")
+                   .ilike('titulo', f'%{query}%')
                    .execute())
+            
+            # Se não encontrou por título, tenta por ingredientes
+            if not data.data:
+                data = (self.supabase.table('receitas')
+                       .select('*')
+                       .ilike('ingredientes', f'%{query}%')
+                       .execute())
             
             # Converte para o formato do chat
             receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data]
@@ -270,11 +277,18 @@ class ReceitasDB(DatabaseInterface):
             query = clean_search_query(query)
             logger.info(f"Buscando receitas com query: {query}")
             
-            # Busca usando a sintaxe correta para campos TEXT
+            # Busca usando a sintaxe correta do Supabase
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .or_(f"titulo.ilike.%{query}%,ingredientes.ilike.%{query}%,descricao.ilike.%{query}%")
+                   .ilike('titulo', f'%{query}%')
                    .execute())
+            
+            # Se não encontrou por título, tenta por ingredientes
+            if not data.data:
+                data = (self.supabase.table('receitas')
+                       .select('*')
+                       .ilike('ingredientes', f'%{query}%')
+                       .execute())
             
             # Converte para o formato do chat
             receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data]
