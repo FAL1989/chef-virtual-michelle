@@ -16,6 +16,28 @@ def normalize_text(text: str) -> str:
         return ""
     return text.strip().lower()
 
+def clean_search_query(query: str) -> str:
+    """Limpa a query de busca, removendo palavras comuns e mantendo apenas termos relevantes"""
+    # Palavras para remover
+    stop_words = {
+        'o', 'que', 'os', 'as', 'um', 'uns', 'uma', 'umas', 'com', 'para',
+        'por', 'em', 'no', 'na', 'nos', 'nas', 'do', 'da', 'dos', 'das',
+        'posso', 'pode', 'fazer', 'como', 'onde', 'quando', 'qual', 'quais',
+        'aonde', 'porque', 'por que', 'usar', 'uso'
+    }
+    
+    # Normaliza e divide em palavras
+    words = normalize_text(query).split()
+    
+    # Remove stop words
+    cleaned_words = [word for word in words if word not in stop_words]
+    
+    # Se ficou vazio após limpeza, retorna a query original normalizada
+    if not cleaned_words:
+        return normalize_text(query)
+    
+    return ' '.join(cleaned_words)
+
 class DatabaseError(Exception):
     """Exceção customizada para erros do banco de dados"""
     pass
@@ -122,31 +144,24 @@ class ReceitasDB:
             if not query:
                 data = self.supabase.table('receitas').select('*').execute()
                 st.write("DEBUG - Dados retornados (sem query):", data.data)
-            else:
-                # Limpa e normaliza a query
-                query = query.strip().lower()
-                st.write("DEBUG - Query normalizada:", query)
-                
-                # Busca usando filter com ilike no título
-                data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
-                st.write("DEBUG - Dados retornados do Supabase (busca por título):", data.data)
-                
-                # Se não encontrou no título, tenta nos ingredientes
-                if not data.data:
-                    data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
-                    st.write("DEBUG - Dados retornados do Supabase (busca por ingredientes):", data.data)
+                return [ReceitaAdapter.to_chat_format(r) for r in data.data]
+            
+            # Limpa e normaliza a query
+            query = clean_search_query(query)
+            st.write("DEBUG - Query limpa e normalizada:", query)
+            
+            # Busca usando filter com ilike no título
+            data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
+            st.write("DEBUG - Dados retornados do Supabase (busca por título):", data.data)
+            
+            # Se não encontrou no título, tenta nos ingredientes
+            if not data.data:
+                data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
+                st.write("DEBUG - Dados retornados do Supabase (busca por ingredientes):", data.data)
             
             if not data.data:
                 st.info("Nenhuma receita encontrada.")
                 return []
-            
-            # Verifica se os dados têm a estrutura esperada
-            for receita in data.data:
-                st.write("DEBUG - Verificando estrutura da receita:", {
-                    'id': receita.get('id'),
-                    'titulo': receita.get('titulo'),
-                    'ingredientes': receita.get('ingredientes', '')[:100] + '...' # Mostra apenas início dos ingredientes
-                })
             
             # Cria resumo das receitas encontradas e filtra os inválidos
             receitas = []
@@ -160,7 +175,6 @@ class ReceitasDB:
                     st.warning(f"Resumo inválido para receita {receita.get('id')}")
             
             st.write(f"DEBUG - Encontradas {len(receitas)} receitas válidas")
-            st.write("DEBUG - Resumos criados:", receitas)
             return receitas
                 
         except Exception as e:
