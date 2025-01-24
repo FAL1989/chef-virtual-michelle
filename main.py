@@ -152,7 +152,13 @@ def render_recipe_preview(receita: dict):
             st.markdown(f"_{receita['descricao']}_")
             
         st.markdown("### 📝 Ingredientes")
-        ingredientes = receita['ingredientes'].split('\n')
+        # Trata ingredientes como string ou lista
+        ingredientes = receita['ingredientes']
+        if isinstance(ingredientes, str):
+            ingredientes = ingredientes.split('\n')
+        elif isinstance(ingredientes, list):
+            ingredientes = [ing.strip() for ing in ingredientes if ing.strip()]
+            
         for i, ing in enumerate(ingredientes[:5]):
             st.markdown(f"• {ing}")
         if len(ingredientes) > 5:
@@ -176,11 +182,25 @@ def render_recipe_preview(receita: dict):
                     st.markdown(f"_{receita_completa['descricao']}_\n")
                 
                 st.markdown("## 📝 Ingredientes")
-                for ing in receita_completa['ingredientes'].split('\n'):
+                # Trata ingredientes como string ou lista
+                ingredientes = receita_completa['ingredientes']
+                if isinstance(ingredientes, str):
+                    ingredientes = ingredientes.split('\n')
+                elif isinstance(ingredientes, list):
+                    ingredientes = [ing.strip() for ing in ingredientes if ing.strip()]
+                    
+                for ing in ingredientes:
                     st.markdown(f"• {ing}")
                     
                 st.markdown("\n## 👩‍🍳 Modo de Preparo")
-                for i, passo in enumerate(receita_completa['modo_preparo'].split('\n'), 1):
+                # Trata modo de preparo como string ou lista
+                modo_preparo = receita_completa['modo_preparo']
+                if isinstance(modo_preparo, str):
+                    modo_preparo = modo_preparo.split('\n')
+                elif isinstance(modo_preparo, list):
+                    modo_preparo = [passo.strip() for passo in modo_preparo if passo.strip()]
+                    
+                for i, passo in enumerate(modo_preparo, 1):
                     st.markdown(f"{i}. {passo}")
                     
                 if receita_completa.get('tempo_preparo'):
@@ -192,7 +212,10 @@ def render_recipe_preview(receita: dict):
                     
                 if receita_completa.get('dicas'):
                     st.markdown("\n## 💡 Dicas")
-                    for dica in receita_completa['dicas']:
+                    dicas = receita_completa['dicas']
+                    if isinstance(dicas, str):
+                        dicas = dicas.split('\n')
+                    for dica in dicas:
                         st.markdown(f"• {dica}")
                         
                 if receita_completa.get('harmonizacao'):
