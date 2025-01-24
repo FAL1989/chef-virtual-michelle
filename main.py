@@ -165,7 +165,7 @@ def search_recipes():
         db = ReceitasDB()
         receitas = db.buscar_receitas_cached(query)
         if receitas:
-            st.success(f"Encontradas {len(receitas)} receitas:")
+            st.write(f"Encontradas {len(receitas)} receitas:")
             for receita in receitas:
                 render_recipe_preview(receita)
                 st.divider()
@@ -424,11 +424,11 @@ def main():
             # Usa a mesma instância do db criada acima
             receitas = db.buscar_receitas_cached(busca)
             if receitas:
-                st.success(f"Encontradas {len(receitas)} receitas!")
+                st.write(f"Encontradas {len(receitas)} receitas!")
                 for receita in receitas:
                     render_recipe_preview(receita)
             else:
-                st.warning("Nenhuma receita encontrada. Que tal me perguntar diretamente? Posso criar uma receita especialmente para você!")
+                st.info("Nenhuma receita encontrada. Que tal me perguntar diretamente? Posso criar uma receita especialmente para você!")
 
 if __name__ == "__main__":
     main()
