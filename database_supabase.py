@@ -113,31 +113,35 @@ class ReceitasDB:
         try:
             if not query:
                 data = self.supabase.table('receitas').select('*').execute()
-                return [self._criar_resumo_receita(receita) for receita in data.data]
+                st.write("DEBUG - Dados retornados (sem query):", data.data)
+                # Filtra apenas os resumos válidos (não None)
+                return [resumo for resumo in (self._criar_resumo_receita(receita) for receita in data.data) if resumo is not None]
 
             # Limpa e normaliza a query
             query = query.strip().lower()
+            st.write("DEBUG - Query normalizada:", query)
             
             # Busca usando filter com ilike no título
             data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
+            st.write("DEBUG - Dados retornados (busca por título):", data.data)
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
                 data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
-            
-            st.write("DEBUG - Dados retornados do Supabase:", data.data)
+                st.write("DEBUG - Dados retornados (busca por ingredientes):", data.data)
             
             if not data.data:
+                st.info("Nenhuma receita encontrada.")
                 return []
             
-            # Cria resumo das receitas encontradas
+            # Cria resumo das receitas encontradas e filtra os inválidos
             receitas = []
             for receita in data.data:
                 resumo = self._criar_resumo_receita(receita)
-                if resumo:  # Só adiciona se a conversão foi bem sucedida
+                if resumo is not None:  # Só adiciona se o resumo for válido
                     receitas.append(resumo)
             
-            st.write("DEBUG - Resumos criados:", receitas)
+            st.write("DEBUG - Resumos válidos criados:", receitas)
             return receitas
                 
         except Exception as e:
@@ -154,18 +158,24 @@ class ReceitasDB:
             receita_id = receita.get('id')
             st.write("DEBUG - ID original:", receita_id, "Tipo:", type(receita_id))
             
+            # Validação mais rigorosa do ID
             if receita_id is None:
                 st.warning("Receita sem ID encontrada")
-                receita_id = 'sem_id'
-            else:
-                try:
-                    # Tenta converter para inteiro para validar
-                    receita_id = int(receita_id)
-                    receita_id = str(receita_id)  # Converte de volta para string
-                    st.write("DEBUG - ID validado:", receita_id)
-                except (ValueError, TypeError):
-                    st.error(f"ID inválido encontrado: {receita_id}")
-                    receita_id = 'erro'
+                return None  # Não cria resumo para receitas sem ID
+            
+            try:
+                # Tenta converter para inteiro para validar
+                receita_id = int(receita_id)
+                st.write("DEBUG - ID validado:", receita_id)
+            except (ValueError, TypeError):
+                st.error(f"ID inválido encontrado: {receita_id}")
+                return None  # Não cria resumo para receitas com ID inválido
+
+            # Validação do título
+            titulo = str(receita.get('titulo', '')).strip().upper()
+            if not titulo:
+                st.warning("Receita sem título encontrada")
+                return None
 
             # Extrai os ingredientes para preview
             ingredientes_raw = receita.get('ingredientes', '')
@@ -181,8 +191,8 @@ class ReceitasDB:
             st.write("DEBUG - Ingredientes processados:", ingredientes)
 
             resumo = {
-                'id': receita_id,
-                'titulo': str(receita.get('titulo', '')).strip().upper(),
+                'id': receita_id,  # Mantém como inteiro
+                'titulo': titulo,
                 'descricao': str(receita.get('descricao', '')).strip(),
                 'preview_ingredientes': ingredientes
             }
@@ -192,12 +202,7 @@ class ReceitasDB:
             
         except Exception as e:
             st.error(f"Erro ao criar resumo da receita: {str(e)}")
-            return {
-                'id': 'erro',
-                'titulo': 'ERRO AO CARREGAR RECEITA',
-                'descricao': '',
-                'preview_ingredientes': []
-            }
+            return None  # Retorna None em vez de um objeto de erro
 
     def buscar_receita_por_id(self, receita_id: Union[str, int]) -> Optional[Dict]:
         """Busca uma receita específica pelo ID"""
