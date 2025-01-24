@@ -120,6 +120,8 @@ def format_recipe(recipe: Dict) -> str:
 def render_recipe_preview(recipe: Dict) -> None:
     """Renderiza um preview da receita em formato de card"""
     try:
+        st.write("DEBUG - Iniciando preview da receita:", recipe)
+        
         with st.container():
             st.subheader(recipe['titulo'])
             if recipe.get('descricao'):
@@ -129,28 +131,38 @@ def render_recipe_preview(recipe: Dict) -> None:
                 st.write("🥗 Principais ingredientes:")
                 for ing in recipe['preview_ingredientes']:
                     st.write(f"• {ing}")
-                    
+            
             # Gera uma chave única para o botão usando título se não tiver ID
             button_key = f"btn_{recipe.get('id', recipe.get('titulo', 'unknown'))}"
+            st.write("DEBUG - Chave do botão:", button_key)
+            
             if st.button("👉 Ver receita completa", key=button_key):
+                st.write("DEBUG - Botão clicado")
                 # Verifica se o ID existe e é válido
                 receita_id = recipe.get('id')
+                st.write("DEBUG - ID da receita:", receita_id, "Tipo:", type(receita_id))
+                
                 if receita_id and receita_id not in ['erro', 'sem_id']:
                     try:
                         # Tenta converter o ID para inteiro
                         receita_id = int(receita_id)
+                        st.write("DEBUG - ID convertido:", receita_id)
+                        
                         receita_completa = db.buscar_receita_por_id(receita_id)
+                        st.write("DEBUG - Receita completa retornada:", receita_completa is not None)
+                        
                         if receita_completa:
                             render_recipe_card(receita_completa)
                         else:
                             st.error("Não foi possível carregar a receita completa.")
-                    except ValueError:
-                        st.error("ID da receita inválido.")
+                    except ValueError as e:
+                        st.error(f"ID da receita inválido: {str(e)}")
                 else:
-                    st.warning("Esta receita não está disponível para visualização completa.")
+                    st.warning(f"Esta receita não está disponível para visualização completa. ID: {receita_id}")
     except Exception as e:
         st.error(f"Erro ao exibir a receita: {str(e)}")
         st.write("DEBUG - Dados da receita:", recipe)
+        st.write("DEBUG - Stack trace completo:", str(e))
 
 def search_recipes():
     """Interface de busca de receitas"""

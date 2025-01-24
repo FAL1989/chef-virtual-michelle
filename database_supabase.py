@@ -144,29 +144,51 @@ class ReceitasDB:
     def _criar_resumo_receita(self, receita: Dict) -> Dict:
         """Cria um resumo da receita com apenas as informações essenciais"""
         try:
-            # Extrai os primeiros ingredientes (limitado a 3) para preview
+            # Debug do objeto receita completo
+            st.write("DEBUG - Receita completa recebida:", receita)
+            
+            # Extrai e valida o ID
+            receita_id = receita.get('id')
+            st.write("DEBUG - ID original:", receita_id, "Tipo:", type(receita_id))
+            
+            if receita_id is None:
+                st.warning("Receita sem ID encontrada")
+                receita_id = 'sem_id'
+            else:
+                try:
+                    # Tenta converter para inteiro para validar
+                    receita_id = int(receita_id)
+                    receita_id = str(receita_id)  # Converte de volta para string
+                    st.write("DEBUG - ID validado:", receita_id)
+                except (ValueError, TypeError):
+                    st.error(f"ID inválido encontrado: {receita_id}")
+                    receita_id = 'erro'
+
+            # Extrai os ingredientes para preview
             ingredientes_raw = receita.get('ingredientes', '')
+            st.write("DEBUG - Ingredientes raw:", ingredientes_raw)
+            
             if isinstance(ingredientes_raw, str):
                 ingredientes = [ing.strip() for ing in ingredientes_raw.split('\n') if ing.strip()][:3]
                 if len(ingredientes_raw.split('\n')) > 3:
                     ingredientes.append('...')
             else:
                 ingredientes = []
+            
+            st.write("DEBUG - Ingredientes processados:", ingredientes)
 
-            # Garante que o ID seja uma string válida
-            receita_id = receita.get('id')
-            if receita_id is None:
-                logger.warning("Receita sem ID encontrada")
-                receita_id = 'sem_id'
-
-            return {
-                'id': str(receita_id),
+            resumo = {
+                'id': receita_id,
                 'titulo': str(receita.get('titulo', '')).strip().upper(),
                 'descricao': str(receita.get('descricao', '')).strip(),
                 'preview_ingredientes': ingredientes
             }
+            
+            st.write("DEBUG - Resumo final:", resumo)
+            return resumo
+            
         except Exception as e:
-            logger.error(f"Erro ao criar resumo da receita: {e}")
+            st.error(f"Erro ao criar resumo da receita: {str(e)}")
             return {
                 'id': 'erro',
                 'titulo': 'ERRO AO CARREGAR RECEITA',
@@ -177,14 +199,18 @@ class ReceitasDB:
     def buscar_receita_por_id(self, receita_id: Union[str, int]) -> Optional[Dict]:
         """Busca uma receita específica pelo ID"""
         try:
+            st.write("DEBUG - Iniciando busca por ID:", receita_id, "Tipo:", type(receita_id))
+            
             # Garante que o ID seja um inteiro
             if isinstance(receita_id, str):
                 receita_id = int(receita_id)
             
-            # Debug para verificar o ID sendo buscado
-            st.write("DEBUG - Buscando receita ID:", receita_id)
+            st.write("DEBUG - ID convertido:", receita_id, "Tipo:", type(receita_id))
             
+            # Faz a busca no Supabase
             data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
+            
+            st.write("DEBUG - Resposta do Supabase:", data)
             
             if not data.data:
                 st.warning(f"Receita não encontrada: {receita_id}")
@@ -202,10 +228,11 @@ class ReceitasDB:
             return receita
                 
         except ValueError as e:
-            st.error(f"ID inválido: {receita_id}")
+            st.error(f"ID inválido: {receita_id} - Erro: {str(e)}")
             return None
         except Exception as e:
             st.error(f"Erro ao buscar receita: {str(e)}")
+            st.write("DEBUG - Stack trace completo:", str(e))
             return None
 
     @staticmethod
