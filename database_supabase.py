@@ -233,24 +233,24 @@ class ReceitasDB(DatabaseInterface):
             # Verifica a estrutura dos dados primeiro
             self.verificar_estrutura()
             
-            # Busca usando filter com cast explícito para text
+            # Busca usando a sintaxe correta do Supabase
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .filter('titulo::text', 'ilike', f'%{query}%')
+                   .ilike('titulo', f'%{query}%')
                    .execute())
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .filter('ingredientes::text', 'ilike', f'%{query}%')
+                       .ilike('ingredientes', f'%{query}%')
                        .execute())
             
             # Se ainda não encontrou, tenta na descrição
             if not data.data:
                 data = (self.supabase.table('receitas')
                        .select('*')
-                       .filter('descricao::text', 'ilike', f'%{query}%')
+                       .ilike('descricao', f'%{query}%')
                        .execute())
             
             # Combina os resultados removendo duplicatas por ID
