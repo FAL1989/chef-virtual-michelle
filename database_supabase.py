@@ -158,18 +158,14 @@ class ReceitasDB:
             receita_id = receita.get('id')
             st.write("DEBUG - ID original:", receita_id, "Tipo:", type(receita_id))
             
-            # Validação mais rigorosa do ID
-            if receita_id is None:
+            # Validação do ID
+            if receita_id is None or not str(receita_id).strip():
                 st.warning("Receita sem ID encontrada")
                 return None  # Não cria resumo para receitas sem ID
             
-            try:
-                # Tenta converter para inteiro para validar
-                receita_id = int(receita_id)
-                st.write("DEBUG - ID validado:", receita_id)
-            except (ValueError, TypeError):
-                st.error(f"ID inválido encontrado: {receita_id}")
-                return None  # Não cria resumo para receitas com ID inválido
+            # Mantém o ID no formato original (seja UUID ou numérico)
+            receita_id = str(receita_id).strip()
+            st.write("DEBUG - ID validado:", receita_id)
 
             # Validação do título
             titulo = str(receita.get('titulo', '')).strip().upper()
@@ -191,7 +187,7 @@ class ReceitasDB:
             st.write("DEBUG - Ingredientes processados:", ingredientes)
 
             resumo = {
-                'id': receita_id,  # Mantém como inteiro
+                'id': receita_id,  # ID no formato original
                 'titulo': titulo,
                 'descricao': str(receita.get('descricao', '')).strip(),
                 'preview_ingredientes': ingredientes
@@ -209,11 +205,10 @@ class ReceitasDB:
         try:
             st.write("DEBUG - Iniciando busca por ID:", receita_id, "Tipo:", type(receita_id))
             
-            # Garante que o ID seja um inteiro
-            if isinstance(receita_id, str):
-                receita_id = int(receita_id)
+            # Garante que o ID seja string para comparação
+            receita_id = str(receita_id).strip()
             
-            st.write("DEBUG - ID convertido:", receita_id, "Tipo:", type(receita_id))
+            st.write("DEBUG - ID convertido:", receita_id)
             
             # Faz a busca no Supabase
             data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
@@ -235,9 +230,6 @@ class ReceitasDB:
             
             return receita
                 
-        except ValueError as e:
-            st.error(f"ID inválido: {receita_id} - Erro: {str(e)}")
-            return None
         except Exception as e:
             st.error(f"Erro ao buscar receita: {str(e)}")
             st.write("DEBUG - Stack trace completo:", str(e))
