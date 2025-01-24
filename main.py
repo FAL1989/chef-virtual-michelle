@@ -343,41 +343,31 @@ def main():
     init_session_state()
     
     # Layout principal
-    col1, col2 = st.columns([2, 3])
+    st.title("👩‍🍳 Chef Virtual - Receitas da Michelle")
+    st.write("Olá! Sou a Chef Michelle, especialista em gastronomia funcional. Como posso ajudar você hoje?")
+    st.write("Você pode:")
+    st.write("- Pedir uma receita específica")
+    st.write("- Informar os ingredientes que tem disponível")
+    st.write("- Perguntar sobre substituições e dicas")
     
-    with col1:
-        # Barra de busca
-        st.title("🔍 Busca")
+    # Renderiza o histórico de mensagens
+    render_message_history()
+    
+    # Processa a entrada do usuário
+    process_user_input(client, db)
+    
+    # Área de busca (colapsada por padrão)
+    with st.expander("🔍 Buscar no banco de receitas"):
         busca = st.text_input("Digite sua busca:", key="busca")
         
         if busca:
             receitas = ReceitasDB.buscar_receitas_cached(busca)
             if receitas:
                 st.success(f"Encontradas {len(receitas)} receitas!")
+                for receita in receitas:
+                    render_recipe_card(receita)
             else:
-                st.warning("Nenhuma receita encontrada.")
-        else:
-            receitas = ReceitasDB.exportar_receitas_cached()
-            if receitas:
-                st.success(f"Total de {len(receitas)} receitas disponíveis")
-            else:
-                st.warning("Nenhuma receita encontrada.")
-        
-        # Renderiza as receitas encontradas
-        if receitas:
-            for receita in receitas:
-                render_recipe_card(receita)
-    
-    with col2:
-        # Área do chat
-        st.title("Chef Virtual - Receitas da Michelle")
-        st.write("Bem-vindo! Pergunte por uma receita ou informe os ingredientes que você tem disponível.")
-        
-        # Renderiza o histórico de mensagens
-        render_message_history()
-        
-        # Processa a entrada do usuário
-        process_user_input(client, db)
+                st.warning("Nenhuma receita encontrada. Que tal me perguntar diretamente? Posso criar uma receita especialmente para você!")
 
 if __name__ == "__main__":
     main()
