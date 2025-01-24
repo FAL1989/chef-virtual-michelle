@@ -34,7 +34,7 @@ def criar_tabelas(db: ReceitasDB):
     try:
         print("Recriando tabelas...")
         # Exclui todas as receitas existentes
-        db.supabase.table('receitas').delete().execute()
+        db.supabase.table('receitas').delete().gte('id', '0').execute()
         print("Tabelas limpas com sucesso!")
     except Exception as e:
         print(f"Erro ao limpar tabelas: {e}")
