@@ -12,8 +12,12 @@ from abc import ABC, abstractmethod
 import logging
 
 # Configurar logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
+
+# Para debug em desenvolvimento, usar logging.DEBUG em arquivos específicos
+if os.getenv('ENVIRONMENT') == 'development':
+    logger.setLevel(logging.DEBUG)
 
 # Configuração da página
 st.set_page_config(
