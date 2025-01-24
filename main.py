@@ -119,6 +119,19 @@ def format_recipe(recipe: Dict) -> str:
 
 def render_recipe_card(recipe: Dict) -> None:
     """Renderiza um card de receita"""
+    # Garante que a receita é um dicionário
+    if isinstance(recipe, str):
+        try:
+            recipe = json.loads(recipe)
+        except json.JSONDecodeError:
+            st.error(f"Erro ao decodificar receita: {recipe}")
+            return
+    
+    # Verifica se a receita tem o formato esperado
+    if not isinstance(recipe, dict) or 'titulo' not in recipe:
+        st.error("Formato de receita inválido")
+        return
+    
     with st.container():
         col1, col2 = st.columns([3, 1])
         with col1:
