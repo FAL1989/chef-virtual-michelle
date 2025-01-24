@@ -165,9 +165,14 @@ def render_sidebar(db: ReceitasDB):
         else:
             receitas = ReceitasDB.exportar_receitas_cached()  # Usando método estático
             if receitas:
-                st.success(f"Total de {len(receitas)} receitas!")
+                st.success(f"Total de {len(receitas)} receitas disponíveis")
             else:
                 st.warning("Nenhuma receita encontrada.")
+        
+        # Renderiza as receitas encontradas
+        if receitas:
+            for receita in receitas:
+                render_recipe_card(receita)
         
         return receitas
 
