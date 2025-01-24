@@ -128,44 +128,77 @@ def format_recipe(recipe: Dict) -> str:
     texto += "---\n"
     return texto
 
-def render_recipe_preview(recipe: Dict) -> None:
-    """Renderiza um preview da receita em formato de card"""
+def render_recipe_preview(receita: Dict):
+    """Renderiza um preview da receita com botão para ver completa"""
     try:
-        with st.container():
-            st.subheader(recipe['titulo'])
-            if recipe.get('descricao'):
-                st.write(recipe['descricao'])
+        # Verifica se a receita tem ID
+        receita_id = receita.get('id')
+        if not receita_id:
+            st.warning("Receita sem ID encontrada")
+            return
+        
+        # Cria uma coluna para o preview
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            st.markdown(f"### {receita['titulo']}")
+            if receita.get('descricao'):
+                st.markdown(receita['descricao'])
             
-            if recipe.get('preview_ingredientes'):
-                st.write("🥗 Principais ingredientes:")
-                for ing in recipe['preview_ingredientes']:
-                    st.write(f"• {ing}")
-            
-            # Gera uma chave única para o botão usando título se não tiver ID
-            button_key = f"btn_{recipe.get('id', recipe.get('titulo', 'unknown'))}"
-            
-            # Cria uma nova instância do ReceitasDB fora do if do botão
-            db = ReceitasDB()
-            
-            if st.button("👉 Ver receita completa", key=button_key):
-                # Verifica se o ID existe e é válido
-                receita_id = recipe.get('id')
+            # Mostra os ingredientes principais
+            st.markdown("**Ingredientes principais:**")
+            ingredientes = receita.get('ingredientes', [])
+            for ing in ingredientes[:5]:  # Mostra só os 5 primeiros
+                st.markdown(f"• {ing}")
+            if len(ingredientes) > 5:
+                st.markdown("_(e mais ingredientes...)_")
+        
+        with col2:
+            # Botão para ver a receita completa
+            if st.button("Ver receita completa", key=f"btn_{receita_id}"):
+                # Instancia o banco de dados
+                db = ReceitasDB()
+                # Busca a receita completa
+                receita_completa = db.buscar_receita_por_id(receita_id)
                 
-                if receita_id and receita_id not in ['erro', 'sem_id']:
-                    try:
-                        # Usa a instância já criada
-                        receita_completa = db.buscar_receita_por_id(receita_id)
-                        
-                        if receita_completa:
-                            render_recipe_card(receita_completa)
-                        else:
-                            st.error("Não foi possível carregar a receita completa.")
-                    except Exception as e:
-                        st.error(f"Erro ao buscar receita: {str(e)}")
+                if receita_completa:
+                    st.markdown("---")
+                    st.markdown(f"## {receita_completa['titulo']}")
+                    
+                    if receita_completa.get('descricao'):
+                        st.markdown(receita_completa['descricao'])
+                    
+                    st.markdown("\n### Ingredientes")
+                    for ing in receita_completa.get('ingredientes', []):
+                        st.markdown(f"• {ing}")
+                    
+                    if receita_completa.get('modo_preparo'):
+                        st.markdown("\n### Modo de Preparo")
+                        for i, passo in enumerate(receita_completa['modo_preparo'], 1):
+                            st.markdown(f"{i}. {passo}")
+                    
+                    if receita_completa.get('tempo_preparo'):
+                        st.markdown(f"\n⏱️ **Tempo de preparo:** {receita_completa['tempo_preparo']}")
+                    
+                    if receita_completa.get('porcoes'):
+                        st.markdown(f"🍽️ **Porções:** {receita_completa['porcoes']}")
+                    
+                    if receita_completa.get('dificuldade'):
+                        st.markdown(f"📊 **Dificuldade:** {receita_completa['dificuldade']}")
+                    
+                    if receita_completa.get('dicas'):
+                        st.markdown("\n### Dicas")
+                        for dica in receita_completa['dicas']:
+                            st.markdown(f"• {dica}")
+                    
+                    if receita_completa.get('harmonizacao'):
+                        st.markdown(f"\n### Harmonização")
+                        st.markdown(receita_completa['harmonizacao'])
                 else:
-                    st.warning(f"Esta receita não está disponível para visualização completa.")
+                    st.error("Não foi possível carregar a receita completa")
     except Exception as e:
-        st.error(f"Erro ao exibir a receita: {str(e)}")
+        st.error(f"Erro ao renderizar preview: {str(e)}")
+        logger.error(f"Erro ao renderizar preview: {str(e)}")
 
 def search_recipes():
     """Interface de busca de receitas"""
@@ -313,95 +346,102 @@ def extract_search_terms(prompt: str) -> str:
     return prompt.strip()
 
 def process_user_input(client: OpenAI, db: DatabaseInterface):
-    """Processa a entrada do usuário"""
-    if prompt := st.chat_input("Digite aqui sua pergunta ou ingredientes:"):
+    """Processa a entrada do usuário e retorna uma resposta"""
+    try:
+        # Obtém a mensagem do usuário
+        prompt = st.session_state.user_input
+        
+        # Limpa a entrada
+        st.session_state.user_input = ""
+        
+        # Adiciona a mensagem do usuário ao histórico
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"):
-            with st.spinner("Processando sua solicitação..."):
+        
+        # Busca receitas relacionadas
+        receitas = db.buscar_receitas_por_texto(prompt)
+        
+        if receitas:
+            # Formata a resposta em linguagem natural
+            resposta = "Encontrei algumas receitas que podem te ajudar!\n\n"
+            
+            for receita in receitas:
+                resposta += f"**{receita['titulo']}**\n"
+                if receita.get('descricao'):
+                    resposta += f"{receita['descricao']}\n\n"
+                
+                # Mostra apenas os 5 primeiros ingredientes
+                resposta += "**Ingredientes principais:**\n"
+                ingredientes = receita.get('ingredientes', [])
+                for ing in ingredientes[:5]:
+                    resposta += f"• {ing}\n"
+                if len(ingredientes) > 5:
+                    resposta += "_(e mais ingredientes...)_\n"
+                
+                # Tempo de preparo e porções se disponível
+                if receita.get('tempo_preparo'):
+                    resposta += f"\n⏱️ **Tempo de preparo:** {receita['tempo_preparo']}"
+                if receita.get('porcoes'):
+                    resposta += f"\n🍽️ **Porções:** {receita['porcoes']}"
+                if receita.get('dificuldade'):
+                    resposta += f"\n📊 **Dificuldade:** {receita['dificuldade']}"
+                
+                resposta += "\n\n_Clique em 'Ver receita completa' para mais detalhes!_\n\n---\n\n"
+            
+            # Adiciona a resposta ao histórico
+            st.session_state.messages.append({"role": "assistant", "content": resposta})
+            
+            # Mostra os previews das receitas encontradas
+            for receita in receitas:
+                render_recipe_preview(receita)
+                st.divider()
+        else:
+            st.session_state.messages.append({"role": "assistant", "content": "Não encontrei receitas existentes com esses ingredientes. Vou criar uma nova receita para você!"})
+            nova_receita = generate_new_recipe(client, prompt, db)
+            if nova_receita:
                 try:
-                    # Extrai termos de busca da pergunta
-                    search_terms = extract_search_terms(prompt)
-                    st.write("DEBUG - Termos de busca:", search_terms)
-                    
-                    # Usa o método padrão de busca
-                    receitas_encontradas = db.buscar_receitas(search_terms)
-                    st.write("DEBUG - Receitas encontradas:", len(receitas_encontradas))
-                    
-                    if receitas_encontradas:
-                        resposta = "Encontrei algumas receitas que podem te ajudar!\n\n"
-                        for receita in receitas_encontradas:
-                            # Gera uma resposta em linguagem natural
-                            resposta += f"**{receita['titulo']}**\n"
-                            if receita.get('descricao'):
-                                resposta += f"{receita['descricao']}\n\n"
-                            
-                            resposta += "**Ingredientes principais:**\n"
-                            for ing in receita.get('ingredientes', [])[:5]:  # Mostra só os 5 primeiros
-                                resposta += f"• {ing}\n"
-                            if len(receita.get('ingredientes', [])) > 5:
-                                resposta += "*(e outros ingredientes...)*\n"
-                            
-                            if receita.get('tempo_preparo'):
-                                resposta += f"\n⏱️ Tempo de preparo: {receita['tempo_preparo']}\n"
-                            if receita.get('dificuldade'):
-                                resposta += f"📊 Dificuldade: {receita['dificuldade']}\n"
-                            
-                            # Adiciona um botão para ver a receita completa
-                            render_recipe_preview(receita)
-                            
-                            resposta += "\n---\n\n"
+                    # Tenta converter para dict se for string JSON
+                    if isinstance(nova_receita, str):
+                        receita_dict = json.loads(nova_receita)
                     else:
-                        st.info("Não encontrei receitas existentes com esses ingredientes. Vou criar uma nova receita para você!")
-                        nova_receita = generate_new_recipe(client, prompt, db)
-                        if nova_receita:
-                            try:
-                                # Tenta converter para dict se for string JSON
-                                if isinstance(nova_receita, str):
-                                    receita_dict = json.loads(nova_receita)
-                                else:
-                                    receita_dict = nova_receita
-                                
-                                # Salva no banco
-                                if db.adicionar_receita(receita_dict):
-                                    st.success("Receita salva no banco de dados!")
-                                    
-                                    # Formata a resposta em linguagem natural
-                                    resposta = f"Criei uma receita especial de {receita_dict['titulo'].lower()} para você!\n\n"
-                                    if receita_dict.get('descricao'):
-                                        resposta += f"{receita_dict['descricao']}\n\n"
-                                    
-                                    resposta += "**Ingredientes necessários:**\n"
-                                    for ing in receita_dict.get('ingredientes', []):
-                                        resposta += f"• {ing}\n"
-                                    
-                                    resposta += "\n**Modo de preparo:**\n"
-                                    for i, step in enumerate(receita_dict.get('modo_preparo', []), 1):
-                                        resposta += f"{i}. {step}\n"
-                                    
-                                    if receita_dict.get('dicas'):
-                                        resposta += "\n**Dicas:**\n"
-                                        for dica in receita_dict['dicas']:
-                                            resposta += f"• {dica}\n"
-                                    
-                                    if receita_dict.get('harmonizacao'):
-                                        resposta += f"\n**Harmonização:** {receita_dict['harmonizacao']}"
-                                else:
-                                    resposta = "Desculpe, não consegui salvar a receita no banco, mas aqui está ela:\n\n"
-                                    resposta += format_recipe(receita_dict)
-                            except json.JSONDecodeError:
-                                resposta = nova_receita  # Usa a resposta original em caso de erro
-                        else:
-                            resposta = "Desculpe, não consegui criar uma nova receita no momento."
+                        receita_dict = nova_receita
                     
-                    st.markdown(resposta)
-                    st.session_state.messages.append({"role": "assistant", "content": resposta})
-                    
+                    # Salva no banco
+                    if db.adicionar_receita(receita_dict):
+                        st.success("Receita salva no banco de dados!")
+                        
+                        # Formata a resposta em linguagem natural
+                        resposta = f"Criei uma receita especial de {receita_dict['titulo'].lower()} para você!\n\n"
+                        if receita_dict.get('descricao'):
+                            resposta += f"{receita_dict['descricao']}\n\n"
+                        
+                        resposta += "**Ingredientes necessários:**\n"
+                        for ing in receita_dict.get('ingredientes', []):
+                            resposta += f"• {ing}\n"
+                        
+                        resposta += "\n**Modo de preparo:**\n"
+                        for i, step in enumerate(receita_dict.get('modo_preparo', []), 1):
+                            resposta += f"{i}. {step}\n"
+                        
+                        if receita_dict.get('dicas'):
+                            resposta += "\n**Dicas:**\n"
+                            for dica in receita_dict['dicas']:
+                                resposta += f"• {dica}\n"
+                        
+                        if receita_dict.get('harmonizacao'):
+                            resposta += f"\n**Harmonização:** {receita_dict['harmonizacao']}"
+                        
+                        st.session_state.messages.append({"role": "assistant", "content": resposta})
+                        
+                        # Mostra o preview da nova receita
+                        render_recipe_preview(receita_dict)
+                    else:
+                        st.error("Erro ao salvar a receita no banco de dados")
                 except Exception as e:
-                    st.error(f"Ops! Tive um problema ao processar sua solicitação: {str(e)}")
-                    st.session_state.messages.append({"role": "assistant", "content": "Desculpe, ocorreu um erro ao processar sua solicitação."})
+                    st.error(f"Erro ao processar nova receita: {str(e)}")
+                    logger.error(f"Erro ao processar nova receita: {str(e)}")
+    except Exception as e:
+        st.error(f"Erro ao processar entrada: {str(e)}")
+        logger.error(f"Erro ao processar entrada: {str(e)}")
 
 def generate_new_recipe(client: OpenAI, prompt: str, db: DatabaseInterface) -> str:
     """Gera uma nova receita usando a API da OpenAI"""

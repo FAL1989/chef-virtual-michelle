@@ -280,15 +280,8 @@ class ReceitasDB(DatabaseInterface):
             # Busca usando a sintaxe correta do Supabase
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .ilike('titulo', f'%{query}%')
+                   .or_(f"titulo.ilike.%{query}%,ingredientes.ilike.%{query}%")
                    .execute())
-            
-            # Se não encontrou por título, tenta por ingredientes
-            if not data.data:
-                data = (self.supabase.table('receitas')
-                       .select('*')
-                       .ilike('ingredientes', f'%{query}%')
-                       .execute())
             
             # Converte para o formato do chat
             receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data]
@@ -465,6 +458,12 @@ class ReceitaAdapter:
     def to_chat_format(receita_db: Dict) -> Dict:
         """Converte do formato do banco para o formato rico do chat"""
         try:
+            # Garante que o ID seja mantido
+            receita_id = str(receita_db.get('id', '')).strip()
+            if not receita_id:
+                logger.warning("Receita sem ID encontrada")
+                return None
+
             # Limpa e normaliza ingredientes
             ingredientes_raw = receita_db.get('ingredientes', '')
             if isinstance(ingredientes_raw, str):
@@ -484,37 +483,9 @@ class ReceitaAdapter:
                 preparo = list(dict.fromkeys(preparo))
             else:
                 preparo = []
-            
-            # Garante que campos JSONB sejam dicts/lists
-            info_nutri = receita_db.get('informacoes_nutricionais', {})
-            if isinstance(info_nutri, str):
-                try:
-                    info_nutri = json.loads(info_nutri)
-                except:
-                    info_nutri = {
-                        'calorias': 0.0,
-                        'proteinas': 0.0,
-                        'carboidratos': 0.0,
-                        'gorduras': 0.0,
-                        'fibras': 0.0
-                    }
-                    
-            beneficios = receita_db.get('beneficios_funcionais', [])
-            if isinstance(beneficios, str):
-                try:
-                    beneficios = json.loads(beneficios)
-                except:
-                    beneficios = []
-                    
-            dicas = receita_db.get('dicas', [])
-            if isinstance(dicas, str):
-                try:
-                    dicas = json.loads(dicas)
-                except:
-                    dicas = []
-            
+
             return {
-                'id': str(receita_db.get('id', '')).strip(),  # Mantém o ID na conversão
+                'id': receita_id,  # Mantém o ID na conversão
                 'titulo': str(receita_db.get('titulo', '')).strip().upper(),
                 'descricao': str(receita_db.get('descricao', '')).strip(),
                 'ingredientes': ingredientes,
@@ -522,15 +493,13 @@ class ReceitaAdapter:
                 'tempo_preparo': str(receita_db.get('tempo_preparo', '')).strip(),
                 'porcoes': str(receita_db.get('porcoes', '')).strip(),
                 'dificuldade': str(receita_db.get('dificuldade', '')).strip(),
-                'utensilios': str(receita_db.get('utensilios', '')).strip(),
-                'harmonizacao': str(receita_db.get('harmonizacao', '')).strip(),
-                'informacoes_nutricionais': info_nutri,
-                'beneficios_funcionais': beneficios,
-                'dicas': dicas
+                'informacoes_nutricionais': receita_db.get('informacoes_nutricionais', {}),
+                'dicas': receita_db.get('dicas', []),
+                'harmonizacao': str(receita_db.get('harmonizacao', '')).strip()
             }
         except Exception as e:
-            st.error(f"Erro ao converter para formato chat: {str(e)}")
-            return {} 
+            logger.error(f"Erro ao converter para formato chat: {str(e)}")
+            return None
 
 # Opcional: criar um alias para manter consistência
 SupabaseDB = ReceitasDB 
