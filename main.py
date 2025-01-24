@@ -7,6 +7,7 @@ import json
 from datetime import datetime
 import httpx
 from typing import List, Dict, Optional
+from abc import ABC, abstractmethod
 
 # Configuração da página
 st.set_page_config(
@@ -15,6 +16,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+class DatabaseInterface(ABC):
+    @abstractmethod
+    def buscar_receitas(self, query: str) -> List[Dict]:
+        pass
+    
+    @abstractmethod
+    def adicionar_receita(self, receita: Dict) -> bool:
+        pass
 
 def init_openai_client() -> Optional[OpenAI]:
     """Inicializa o cliente OpenAI com configuração HTTP personalizada"""
@@ -301,7 +311,7 @@ def extract_search_terms(prompt: str) -> str:
     
     return prompt.strip()
 
-def process_user_input(client: OpenAI, db: ReceitasDB):
+def process_user_input(client: OpenAI, db: DatabaseInterface):
     """Processa a entrada do usuário"""
     if prompt := st.chat_input("Digite aqui sua pergunta ou ingredientes:"):
         st.session_state.messages.append({"role": "user", "content": prompt})
@@ -313,7 +323,11 @@ def process_user_input(client: OpenAI, db: ReceitasDB):
                 try:
                     # Extrai termos de busca da pergunta
                     search_terms = extract_search_terms(prompt)
-                    receitas_encontradas = db.buscar_receitas_por_texto(search_terms)
+                    st.write("DEBUG - Termos de busca:", search_terms)
+                    
+                    # Usa o método padrão de busca
+                    receitas_encontradas = db.buscar_receitas(search_terms)
+                    st.write("DEBUG - Receitas encontradas:", len(receitas_encontradas))
                     
                     if receitas_encontradas:
                         resposta = "Encontrei algumas receitas que podem te ajudar!\n\n"
@@ -388,7 +402,7 @@ def process_user_input(client: OpenAI, db: ReceitasDB):
                     st.error(f"Ops! Tive um problema ao processar sua solicitação: {str(e)}")
                     st.session_state.messages.append({"role": "assistant", "content": "Desculpe, ocorreu um erro ao processar sua solicitação."})
 
-def generate_new_recipe(client: OpenAI, prompt: str, db: ReceitasDB) -> str:
+def generate_new_recipe(client: OpenAI, prompt: str, db: DatabaseInterface) -> str:
     """Gera uma nova receita usando a API da OpenAI"""
     try:
         messages = prepare_ai_context(prompt)
@@ -517,6 +531,15 @@ def call_openai_api(client: OpenAI, messages: List[Dict]) -> str:
     except Exception as e:
         raise Exception(f"Erro na chamada da API: {str(e)}")
 
+def init_app(db: DatabaseInterface) -> None:
+    st.session_state.db = db
+
+def get_database() -> DatabaseInterface:
+    db_type = st.secrets.get("DATABASE_TYPE", "supabase")
+    if db_type == "sqlite":
+        return SQLiteDB()
+    return SupabaseDB()
+
 def main():
     """Função principal do aplicativo"""
     # Carrega as variáveis de ambiente
@@ -529,7 +552,7 @@ def main():
         st.stop()
     
     # Inicializa o banco de dados
-    db = ReceitasDB()
+    db = get_database()
     
     # Inicializa o estado da sessão
     init_session_state()
@@ -553,14 +576,25 @@ def main():
         busca = st.text_input("Digite sua busca:", key="busca")
         
         if busca:
-            # Usa a mesma instância do db criada acima
-            receitas = db.buscar_receitas_cached(busca)
+            # Usa o método direto de busca
+            receitas = db.buscar_receitas(busca)  # Removido o _cached
             if receitas:
                 st.write(f"Encontradas {len(receitas)} receitas!")
                 for receita in receitas:
                     render_recipe_preview(receita)
             else:
-                st.info("Nenhuma receita encontrada. Que tal me perguntar diretamente? Posso criar uma receita especialmente para você!")
+                st.info("Nenhuma receita encontrada. Que tal me perguntar diretamente?")
+
+    # DEBUG: Teste de busca
+    if st.button("Testar Busca"):
+        try:
+            db = get_database()
+            resultados = db.buscar_receitas("bolo")
+            st.write("Resultados do teste:", len(resultados))
+            for r in resultados:
+                st.write("Título:", r.get('titulo'))
+        except Exception as e:
+            st.error(f"Erro no teste: {str(e)}")
 
 if __name__ == "__main__":
     main()

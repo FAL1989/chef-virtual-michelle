@@ -5,6 +5,8 @@ from datetime import datetime
 from supabase import create_client, Client
 import streamlit as st
 import os
+from tenacity import retry, stop_after_attempt, wait_exponential
+from database_interface import DatabaseInterface
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -106,7 +108,7 @@ class DatabaseError(Exception):
     """Exceção customizada para erros do banco de dados"""
     pass
 
-class ReceitasDB:
+class ReceitasDB(DatabaseInterface):
     def __init__(self):
         """Inicializa a conexão com o Supabase"""
         try:
@@ -200,60 +202,35 @@ class ReceitasDB:
             logger.error(f"Erro ao adicionar receita: {e}")
             return False
 
-    def buscar_receitas_por_texto(self, query: str) -> List[Dict]:
-        """Busca receitas por texto livre (usado no chat)"""
-        try:
-            # Normaliza a query
-            query = query.lower().strip()
-            
-            # Busca por título
-            data = (self.supabase.table('receitas')
-                    .select('*')
-                    .ilike('titulo', f'%{query}%')
-                    .execute())
-            
-            if data.data:
-                return [ReceitaAdapter.to_chat_format(r) for r in data.data]
-            
-            # Se não encontrou por título, busca nos ingredientes
-            data = (self.supabase.table('receitas')
-                    .select('*')
-                    .ilike('ingredientes', f'%{query}%')
-                    .execute())
-            
-            return [ReceitaAdapter.to_chat_format(r) for r in data.data]
-            
-        except Exception as e:
-            print(f"DEBUG - Erro ao buscar receitas: {str(e)}")
-            print(f"DEBUG - Stack trace completo: {e}")
-            return []
-
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def buscar_receitas(self, query: str) -> List[Dict]:
-        """Busca receitas direto no banco (usado na interface de busca)"""
+        """Busca receitas no banco de dados"""
         try:
-            # Normaliza a query
-            query = query.lower().strip()
+            if not query:
+                return []
             
-            # Busca por título
+            # Limpa e normaliza a query
+            query = clean_search_query(query)
+            logger.info(f"Buscando receitas com query: {query}")
+            
+            # Busca usando ILIKE para case-insensitive
             data = (self.supabase.table('receitas')
-                    .select('*')
-                    .ilike('titulo', f'%{query}%')
-                    .execute())
+                   .select('*')
+                   .or_(f'titulo.ilike.%{query}%,ingredientes.ilike.%{query}%,descricao.ilike.%{query}%')
+                   .execute())
             
-            if data.data:
-                return [ReceitaAdapter.to_chat_format(r) for r in data.data]
+            logger.info(f"Encontradas {len(data.data)} receitas")
             
-            # Se não encontrou por título, busca nos ingredientes
-            data = (self.supabase.table('receitas')
-                    .select('*')
-                    .ilike('ingredientes', f'%{query}%')
-                    .execute())
+            # Converte e retorna os resultados
+            receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data]
             
-            return [ReceitaAdapter.to_chat_format(r) for r in data.data]
+            # Debug para verificar os resultados
+            st.write("DEBUG - Resultados da busca:", len(receitas))
+            return receitas
             
         except Exception as e:
-            print(f"DEBUG - Erro ao buscar receitas: {str(e)}")
-            print(f"DEBUG - Stack trace completo: {e}")
+            logger.error(f"Erro na busca: {str(e)}")
+            st.error(f"Erro ao buscar receitas: {str(e)}")
             return []
 
     def _criar_resumo_receita(self, receita: Dict) -> Optional[Dict]:
@@ -337,24 +314,13 @@ class ReceitasDB:
 
     @staticmethod
     @st.cache_data(ttl=3600)
-    def buscar_receitas_cached(query: str = None) -> List[Dict]:
-        """Busca receitas no banco de dados com cache"""
+    def buscar_receitas_cached(query: str) -> List[Dict]:
+        """Versão cacheada da busca de receitas"""
         try:
-            st.write("DEBUG - Iniciando busca com cache. Query:", query)
-            
-            # Cria uma nova instância para cada busca
             db = ReceitasDB()
-            
-            # Faz a busca direta sem chamar o método cached novamente
-            resultados = db.buscar_receitas(query)
-            
-            # Mostra os resultados mesmo com cache
-            st.write("DEBUG - Resultados do cache:", resultados)
-            
-            return resultados
+            return db.buscar_receitas(query)
         except Exception as e:
-            st.error(f"Erro ao buscar receitas (cache): {str(e)}")
-            st.write("DEBUG - Stack trace completo:", str(e))
+            logger.error(f"Erro na busca cacheada: {str(e)}")
             return []
 
     def exportar_receitas(self) -> List[Dict]:
