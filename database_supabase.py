@@ -115,53 +115,8 @@ class ReceitasDB:
             logger.error(f"Erro ao adicionar receita: {e}")
             return False
 
-    def buscar_receitas(self, termo: str = None) -> List[Dict]:
+    def buscar_receitas(self, query: str = None) -> List[Dict]:
         """Busca receitas no banco de dados"""
-        try:
-            query = self.supabase.table('receitas')\
-                .select('''
-                    *,
-                    dicas (dica),
-                    beneficios_funcionais (beneficio)
-                ''')
-
-            if termo:
-                termo = termo.lower()
-                query = query.or_(f"titulo.ilike.%{termo}%,descricao.ilike.%{termo}%,ingredientes.ilike.%{termo}%,modo_preparo.ilike.%{termo}%")
-
-            query = query.order('created_at', desc=True).limit(10)
-            result = query.execute()
-
-            receitas = []
-            for row in result.data:
-                # Processa dicas e benefícios
-                dicas = [d['dica'] for d in row.pop('dicas', [])]
-                beneficios = [b['beneficio'] for b in row.pop('beneficios_funcionais', [])]
-
-                # Monta o dicionário da receita
-                receita = {
-                    **row,
-                    'dicas': dicas,
-                    'beneficios_funcionais': beneficios,
-                    'informacoes_nutricionais': {
-                        'calorias': row.pop('calorias', ''),
-                        'proteinas': row.pop('proteinas', ''),
-                        'carboidratos': row.pop('carboidratos', ''),
-                        'gorduras': row.pop('gorduras', ''),
-                        'fibras': row.pop('fibras', '')
-                    }
-                }
-                receitas.append(receita)
-
-            logger.info(f"Busca por '{termo}' retornou {len(receitas)} receitas")
-            return receitas
-        except Exception as e:
-            logger.error(f"Erro ao buscar receitas: {e}")
-            return []
-
-    @st.cache_data(ttl=3600)
-    def buscar_receitas_cached(self, query: str = None) -> List[Dict]:
-        """Busca receitas no banco de dados com cache"""
         try:
             if query:
                 # Busca por título ou descrição
@@ -172,6 +127,18 @@ class ReceitasDB:
                 # Retorna todas as receitas
                 data = self.supabase.table('receitas').select('*').execute()
             return data.data
+        except Exception as e:
+            logger.error(f"Erro ao buscar receitas: {e}")
+            return []
+
+    @staticmethod
+    @st.cache_data(ttl=3600)
+    def buscar_receitas_cached(query: str = None) -> List[Dict]:
+        """Busca receitas no banco de dados com cache"""
+        try:
+            # Cria uma nova instância para cada busca
+            db = ReceitasDB()
+            return db.buscar_receitas(query)
         except Exception as e:
             logger.error(f"Erro ao buscar receitas: {e}")
             return []
@@ -213,12 +180,14 @@ class ReceitasDB:
             logger.error(f"Erro ao exportar receitas: {e}")
             return "" if formato == 'markdown' else "{}"
 
+    @staticmethod
     @st.cache_data(ttl=3600)
-    def exportar_receitas_cached(self) -> List[Dict]:
+    def exportar_receitas_cached() -> List[Dict]:
         """Exporta todas as receitas do banco de dados com cache"""
         try:
-            data = self.supabase.table('receitas').select('*').execute()
-            return data.data
+            # Cria uma nova instância para cada exportação
+            db = ReceitasDB()
+            return db.exportar_receitas()
         except Exception as e:
             logger.error(f"Erro ao exportar receitas: {e}")
             return [] 
