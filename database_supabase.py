@@ -118,22 +118,13 @@ class ReceitasDB:
             # Limpa e normaliza a query
             query = query.strip().lower()
             
-            # Busca por título e ingredientes usando contains
-            data = self.supabase.table('receitas').select('*').filter(
-                'titulo', 'ilike', f'%{query}%'
+            # Busca usando a sintaxe correta do Supabase para múltiplos campos
+            data = self.supabase.table('receitas').select('*').or_(
+                'titulo.ilike.%' + query + '%,ingredientes.ilike.%' + query + '%'
             ).execute()
             
             st.write("DEBUG - Query:", query)
             st.write("DEBUG - Dados brutos do Supabase:", data.data)
-            
-            if not data.data:
-                # Se não encontrou no título, tenta nos ingredientes
-                data = self.supabase.table('receitas').select('*').filter(
-                    'ingredientes', 'ilike', f'%{query}%'
-                ).execute()
-                
-                st.write("DEBUG - Buscando nos ingredientes...")
-                st.write("DEBUG - Dados brutos do Supabase:", data.data)
             
             if not data.data:
                 st.warning(f"Nenhuma receita encontrada para: {query}")
