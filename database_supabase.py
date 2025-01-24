@@ -17,16 +17,15 @@ class DatabaseError(Exception):
 
 class ReceitasDB:
     def __init__(self):
-        """Inicializa a conexão com o banco de dados"""
-        url = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
-        key = st.secrets.get("SUPABASE_KEY", os.getenv("SUPABASE_KEY", ""))
-        
-        if not url or not key:
-            st.error("⚠️ Credenciais do Supabase não encontradas!")
+        """Inicializa a conexão com o Supabase"""
+        try:
+            url = st.secrets["SUPABASE_URL"]
+            key = st.secrets["SUPABASE_KEY"]
+            self.supabase: Client = create_client(url, key)
+            self._cache = {}
+        except Exception as e:
+            st.error("⚠️ Erro ao conectar com o banco de dados!")
             st.stop()
-            
-        self.supabase = create_client(url, key)
-        self._cache = {}
     
     def _normalizar_texto(self, texto: str) -> str:
         """Normaliza o texto removendo acentos e convertendo para minúsculo"""
