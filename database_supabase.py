@@ -89,6 +89,29 @@ class ReceitasDB:
         """
         pass
 
+    def _converter_formato_db(self, receita_db: Dict) -> Dict:
+        """Converte o formato do banco para o formato da aplicação"""
+        return {
+            'titulo': receita_db.get('titulo', ''),
+            'descricao': receita_db.get('descricao', ''),
+            'utensilios': receita_db.get('utensilios', ''),
+            'ingredientes': receita_db.get('ingredientes', '').split('\n') if receita_db.get('ingredientes') else [],
+            'modo_preparo': receita_db.get('modo_preparo', '').split('\n') if receita_db.get('modo_preparo') else [],
+            'tempo_preparo': receita_db.get('tempo_preparo', ''),
+            'porcoes': str(receita_db.get('porcoes', '')),
+            'dificuldade': receita_db.get('dificuldade', ''),
+            'harmonizacao': receita_db.get('harmonizacao', ''),
+            'informacoes_nutricionais': {
+                'calorias': receita_db.get('calorias', '0'),
+                'proteinas': receita_db.get('proteinas', '0'),
+                'carboidratos': receita_db.get('carboidratos', '0'),
+                'gorduras': receita_db.get('gorduras', '0'),
+                'fibras': receita_db.get('fibras', '0')
+            },
+            'beneficios_funcionais': [],  # Será preenchido em uma consulta separada
+            'dicas': []  # Será preenchido em uma consulta separada
+        }
+
     def adicionar_receita(self, receita: Dict) -> bool:
         """Adiciona uma nova receita ao banco de dados"""
         try:
@@ -126,7 +149,9 @@ class ReceitasDB:
             else:
                 # Retorna todas as receitas
                 data = self.supabase.table('receitas').select('*').execute()
-            return data.data
+            
+            # Converte cada receita para o formato esperado
+            return [self._converter_formato_db(receita) for receita in data.data]
         except Exception as e:
             logger.error(f"Erro ao buscar receitas: {e}")
             return []
@@ -147,7 +172,8 @@ class ReceitasDB:
         """Exporta todas as receitas do banco de dados"""
         try:
             data = self.supabase.table('receitas').select('*').execute()
-            return data.data
+            # Converte cada receita para o formato esperado
+            return [self._converter_formato_db(receita) for receita in data.data]
         except Exception as e:
             logger.error(f"Erro ao exportar receitas: {e}")
             return []
