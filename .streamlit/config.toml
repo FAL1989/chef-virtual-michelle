@@ -1,4 +1,5 @@
 [theme]
+# Tema personalizado
 primaryColor = "#FF4B91"
 backgroundColor = "#0E1117"
 secondaryBackgroundColor = "#262730"
@@ -6,6 +7,26 @@ textColor = "#FAFAFA"
 font = "sans serif"
 
 [server]
+# Configurações do servidor
 maxUploadSize = 10
 enableXsrfProtection = true
-enableCORS = false 
+enableCORS = false
+
+[browser]
+# Configurações do navegador
+gatherUsageStats = false
+
+[runner]
+# Configurações de execução
+magicEnabled = true
+fastReruns = true
+
+[client]
+# Configurações do cliente
+showErrorDetails = false
+toolbarMode = "minimal"
+
+[logger]
+# Configurações de log
+level = "info"
+messageFormat = "%(asctime)s - %(name)s - %(levelname)s - %(message)s" 

@@ -1,0 +1,78 @@
+[MASTER]
+# Descobrir módulos Python
+recursive=yes
+ignore=CVS,.git,__pycache__,venv,.env
+
+# Adicionar arquivos ou diretórios para análise
+init-hook='import sys; sys.path.append(".")'
+
+[MESSAGES CONTROL]
+# Desabilitar warnings específicos
+disable=C0111,  # missing-docstring
+        C0103,  # invalid-name
+        W0511,  # fixme
+        R0903,  # too-few-public-methods
+        R0913,  # too-many-arguments
+        R0914,  # too-many-locals
+        W0703   # broad-except
+
+[FORMAT]
+# Número máximo de caracteres por linha
+max-line-length=100
+
+# Estilo de indentação
+indent-string='    '
+
+[BASIC]
+# Expressão regular para nomes de variáveis
+variable-rgx=[a-z_][a-z0-9_]{1,30}$
+
+# Expressão regular para nomes de funções
+function-rgx=[a-z_][a-z0-9_]{1,30}$
+
+# Expressão regular para nomes de classes
+class-rgx=[A-Z_][a-zA-Z0-9]+$
+
+[SIMILARITIES]
+# Número mínimo de linhas similares
+min-similarity-lines=4
+
+# Ignorar imports em duplicatas
+ignore-imports=yes
+
+[TYPECHECK]
+# Lista de módulos onde membros dinâmicos são gerados
+generated-members=REQUEST,acl_users,aq_parent,objects,DoesNotExist,id,pk,_meta,status_code,content
+
+[VARIABLES]
+# Lista de nomes adicionais considerados como builtins
+additional-builtins=
+
+[CLASSES]
+# Lista de nomes de métodos considerados como interfaces
+defining-attr-methods=__init__,__new__,setUp
+
+[DESIGN]
+# Número máximo de argumentos para funções
+max-args=10
+
+# Número máximo de atributos para classes
+max-attributes=10
+
+# Número mínimo de métodos públicos para uma classe
+min-public-methods=1
+
+# Número máximo de métodos públicos para uma classe
+max-public-methods=20
+
+[IMPORTS]
+# Permitir imports wildcard
+allow-wildcard-with-all=no
+
+[LOGGING]
+# Formato do logging
+logging-format-style=new
+
+[MISCELLANEOUS]
+# Lista de notas para não reportar
+notes=FIXME,XXX,TODO 
