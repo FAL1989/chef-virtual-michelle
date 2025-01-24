@@ -5,6 +5,7 @@ from datetime import datetime
 from supabase import create_client, Client
 import streamlit as st
 import os
+from unidecode import unidecode
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -16,16 +17,116 @@ class DatabaseError(Exception):
 
 class ReceitasDB:
     def __init__(self):
-        """Inicializa a conexão com o Supabase"""
+        """Inicializa a conexão com o banco de dados"""
+        self.supabase = create_client(
+            os.getenv("SUPABASE_URL", ""),
+            os.getenv("SUPABASE_KEY", "")
+        )
+        self._cache = {}
+    
+    def _normalizar_texto(self, texto: str) -> str:
+        """Normaliza o texto removendo acentos e convertendo para minúsculo"""
+        return unidecode(texto.lower().strip())
+    
+    def _processar_ingredientes(self, ingredientes_raw: str) -> List[str]:
+        """Processa a string de ingredientes em uma lista"""
+        if not ingredientes_raw:
+            return []
+        
+        # Divide por quebras de linha e limpa
+        ingredientes = [ing.strip() for ing in ingredientes_raw.split('\n') if ing.strip()]
+        
+        # Limita a 3 ingredientes + reticências para o preview
+        if len(ingredientes) > 3:
+            return ingredientes[:3] + ["..."]
+        return ingredientes
+    
+    def _criar_resumo_receita(self, receita_db: Dict) -> Optional[Dict]:
+        """Cria um resumo da receita para preview"""
         try:
-            url = st.secrets["SUPABASE_URL"]
-            key = st.secrets["SUPABASE_KEY"]
-            self.supabase: Client = create_client(url, key)
-            logger.info("Conexão estabelecida com Supabase")
-            self.criar_tabelas()
-        except Exception as e:
-            logger.error(f"Erro ao conectar com Supabase: {e}")
-            raise
+            # Extrai dados básicos
+            receita_id = str(receita_db.get('id', '')).strip()
+            if not receita_id:
+                return None
+            
+            # Processa ingredientes
+            ingredientes_raw = receita_db.get('ingredientes', '')
+            preview_ingredientes = self._processar_ingredientes(ingredientes_raw)
+            
+            # Monta o resumo
+            return {
+                'id': receita_id,
+                'titulo': str(receita_db.get('titulo', '')).strip().upper(),
+                'descricao': str(receita_db.get('descricao', '')).strip(),
+                'preview_ingredientes': preview_ingredientes
+            }
+        except Exception:
+            return None
+    
+    def buscar_receitas_cached(self, query: str) -> List[Dict]:
+        """Busca receitas com cache"""
+        query_norm = self._normalizar_texto(query)
+        
+        # Verifica cache
+        if query_norm in self._cache:
+            return self._cache[query_norm]
+        
+        # Faz a busca direta sem chamar o método cached novamente
+        resultados = self.buscar_receitas(query)
+        
+        # Atualiza cache
+        self._cache[query_norm] = resultados
+        return resultados
+    
+    def buscar_receitas(self, query: str) -> List[Dict]:
+        """Busca receitas no banco de dados"""
+        query_norm = self._normalizar_texto(query)
+        
+        # Busca por título
+        response = self.supabase.table('receitas').select('*').ilike('titulo', f'%{query_norm}%').execute()
+        
+        # Processa resultados
+        receitas_validas = []
+        for receita in response.data:
+            resumo = self._criar_resumo_receita(receita)
+            if resumo:
+                receitas_validas.append(resumo)
+        
+        return receitas_validas
+    
+    def buscar_receita_por_id(self, receita_id: str) -> Optional[Dict]:
+        """Busca uma receita específica por ID"""
+        response = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
+        
+        if not response.data:
+            return None
+        
+        receita_db = response.data[0]
+        
+        # Converte para o formato esperado
+        return {
+            'id': str(receita_db.get('id', '')).strip(),
+            'titulo': str(receita_db.get('titulo', '')).strip().upper(),
+            'descricao': str(receita_db.get('descricao', '')).strip(),
+            'ingredientes': self._processar_ingredientes(receita_db.get('ingredientes', '')),
+            'modo_preparo': receita_db.get('modo_preparo', []),
+            'tempo_preparo': str(receita_db.get('tempo_preparo', '')).strip(),
+            'porcoes': str(receita_db.get('porcoes', '')).strip(),
+            'dificuldade': str(receita_db.get('dificuldade', '')).strip(),
+            'utensilios': str(receita_db.get('utensilios', '')).strip(),
+            'harmonizacao': str(receita_db.get('harmonizacao', '')).strip(),
+            'informacoes_nutricionais': receita_db.get('informacoes_nutricionais', {}),
+            'beneficios_funcionais': receita_db.get('beneficios_funcionais', []),
+            'dicas': receita_db.get('dicas', [])
+        }
+    
+    def salvar_receita(self, receita: Dict) -> bool:
+        """Salva uma nova receita no banco de dados"""
+        try:
+            response = self.supabase.table('receitas').insert(receita).execute()
+            return bool(response.data)
+        except Exception:
+            return False
 
     def criar_tabelas(self):
         """
@@ -107,161 +208,6 @@ class ReceitasDB:
         except Exception as e:
             logger.error(f"Erro ao adicionar receita: {e}")
             return False
-
-    def buscar_receitas(self, query: str = None) -> List[Dict]:
-        """Busca receitas no banco de dados por título ou ingredientes"""
-        try:
-            st.write("DEBUG - Iniciando busca no banco. Query:", query)
-            
-            if not query:
-                data = self.supabase.table('receitas').select('*').execute()
-                st.write("DEBUG - Dados retornados (sem query):", data.data)
-            else:
-                # Limpa e normaliza a query
-                query = query.strip().lower()
-                st.write("DEBUG - Query normalizada:", query)
-                
-                # Busca usando filter com ilike no título
-                data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
-                st.write("DEBUG - Dados retornados do Supabase (busca por título):", data.data)
-                
-                # Se não encontrou no título, tenta nos ingredientes
-                if not data.data:
-                    data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
-                    st.write("DEBUG - Dados retornados do Supabase (busca por ingredientes):", data.data)
-            
-            if not data.data:
-                st.info("Nenhuma receita encontrada.")
-                return []
-            
-            # Verifica se os dados têm a estrutura esperada
-            for receita in data.data:
-                st.write("DEBUG - Verificando estrutura da receita:", {
-                    'id': receita.get('id'),
-                    'titulo': receita.get('titulo'),
-                    'ingredientes': receita.get('ingredientes', '')[:100] + '...' # Mostra apenas início dos ingredientes
-                })
-            
-            # Cria resumo das receitas encontradas e filtra os inválidos
-            receitas = []
-            for receita in data.data:
-                st.write("DEBUG - Processando receita:", receita.get('id'))
-                resumo = self._criar_resumo_receita(receita)
-                if resumo is not None:  # Só adiciona se o resumo for válido
-                    st.write("DEBUG - Resumo válido criado:", resumo)
-                    receitas.append(resumo)
-                else:
-                    st.warning(f"Resumo inválido para receita {receita.get('id')}")
-            
-            st.write(f"DEBUG - Encontradas {len(receitas)} receitas válidas")
-            st.write("DEBUG - Resumos criados:", receitas)
-            return receitas
-                
-        except Exception as e:
-            st.error(f"Erro ao buscar receitas: {str(e)}")
-            st.write("DEBUG - Stack trace completo:", str(e))
-            return []
-
-    def _criar_resumo_receita(self, receita: Dict) -> Optional[Dict]:
-        """Cria um resumo da receita com apenas as informações essenciais"""
-        try:
-            st.write("DEBUG - Criando resumo para receita:", receita)
-            
-            # Extrai e valida o ID
-            receita_id = receita.get('id')
-            st.write("DEBUG - ID original:", receita_id, "Tipo:", type(receita_id))
-            
-            # Validação do ID
-            if not receita_id:  # Verifica se é None ou vazio
-                st.warning("Receita sem ID encontrada")
-                return None
-            
-            # Mantém o ID no formato original
-            receita_id = str(receita_id).strip()
-            st.write("DEBUG - ID validado:", receita_id)
-
-            # Validação do título
-            titulo = str(receita.get('titulo', '')).strip().upper()
-            if not titulo:
-                st.warning(f"Receita {receita_id} sem título encontrada")
-                return None
-
-            # Extrai os ingredientes para preview
-            ingredientes_raw = receita.get('ingredientes', '')
-            st.write(f"DEBUG - Ingredientes raw da receita {receita_id}:", ingredientes_raw)
-            
-            if isinstance(ingredientes_raw, str):
-                ingredientes = [ing.strip() for ing in ingredientes_raw.split('\n') if ing.strip()][:3]
-                if len(ingredientes_raw.split('\n')) > 3:
-                    ingredientes.append('...')
-            else:
-                ingredientes = []
-            
-            st.write(f"DEBUG - Ingredientes processados da receita {receita_id}:", ingredientes)
-
-            resumo = {
-                'id': receita_id,
-                'titulo': titulo,
-                'descricao': str(receita.get('descricao', '')).strip(),
-                'preview_ingredientes': ingredientes
-            }
-            
-            st.write(f"DEBUG - Resumo final da receita {receita_id}:", resumo)
-            return resumo
-            
-        except Exception as e:
-            st.error(f"Erro ao criar resumo da receita: {str(e)}")
-            st.write("DEBUG - Stack trace completo:", str(e))
-            return None
-
-    def buscar_receita_por_id(self, receita_id: str) -> Optional[Dict]:
-        """Busca uma receita específica pelo ID (UUID)"""
-        try:
-            st.write("DEBUG - Iniciando busca por ID:", receita_id)
-            
-            # Faz a busca no Supabase usando o ID como string
-            data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
-            
-            st.write("DEBUG - Resposta do Supabase:", data.data)
-            
-            if not data.data:
-                st.warning(f"Receita não encontrada: {receita_id}")
-                return None
-            
-            # Converte para o formato do chat
-            receita = self._converter_formato_db(data.data[0])
-            
-            # Debug para verificar a conversão
-            st.write("DEBUG - Dados convertidos:", receita)
-            
-            return receita
-                
-        except Exception as e:
-            st.error(f"Erro ao buscar receita: {str(e)}")
-            st.write("DEBUG - Stack trace completo:", str(e))
-            return None
-
-    @staticmethod
-    @st.cache_data(ttl=3600)
-    def buscar_receitas_cached(query: str = None) -> List[Dict]:
-        """Busca receitas no banco de dados com cache"""
-        try:
-            st.write("DEBUG - Iniciando busca com cache. Query:", query)
-            
-            # Cria uma nova instância para cada busca
-            db = ReceitasDB()
-            
-            # Faz a busca direta sem chamar o método cached novamente
-            resultados = db.buscar_receitas(query)
-            
-            # Mostra os resultados mesmo com cache
-            st.write("DEBUG - Resultados do cache:", resultados)
-            
-            return resultados
-        except Exception as e:
-            st.error(f"Erro ao buscar receitas (cache): {str(e)}")
-            st.write("DEBUG - Stack trace completo:", str(e))
-            return []
 
     def exportar_receitas(self) -> List[Dict]:
         """Exporta todas as receitas do banco de dados"""
