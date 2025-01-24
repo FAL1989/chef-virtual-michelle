@@ -117,66 +117,101 @@ def format_recipe(recipe: Dict) -> str:
     texto += "---\n"
     return texto
 
+def render_recipe_preview(recipe: Dict) -> None:
+    """Renderiza um preview da receita em formato de card"""
+    with st.container():
+        st.subheader(recipe['titulo'])
+        if recipe.get('descricao'):
+            st.write(recipe['descricao'])
+        
+        if recipe.get('preview_ingredientes'):
+            st.write("🥗 Principais ingredientes:")
+            for ing in recipe['preview_ingredientes']:
+                st.write(f"• {ing}")
+                
+        if st.button("👉 Ver receita completa", key=f"btn_{recipe['id']}"):
+            receita_completa = db.buscar_receita_por_id(recipe['id'])
+            if receita_completa:
+                render_recipe_card(receita_completa)
+
+def search_recipes():
+    """Interface de busca de receitas"""
+    query = st.text_input("Digite sua busca:")
+    
+    if query:
+        receitas = db.buscar_receitas_cached(query)
+        if receitas:
+            st.write(f"Encontradas {len(receitas)} receitas:")
+            for receita in receitas:
+                render_recipe_preview(receita)
+                st.divider()
+
 def render_recipe_card(recipe: Dict) -> None:
-    """Renderiza um card de receita"""
+    """Renderiza uma receita completa em formato de card"""
     try:
-        # Garante que a receita é um dicionário
-        if isinstance(recipe, str):
-            try:
-                recipe = json.loads(recipe)
-            except json.JSONDecodeError as e:
-                st.error(f"Erro ao decodificar receita: {str(e)}")
-                st.write("Dados recebidos:", recipe)
-                return
-        
-        # Verifica se a receita tem o formato esperado
-        if not isinstance(recipe, dict):
-            st.error(f"Formato de receita inválido. Tipo recebido: {type(recipe)}")
-            st.write("Dados recebidos:", recipe)
-            return
-            
-        if 'titulo' not in recipe:
-            st.error("Receita sem título")
-            st.write("Dados recebidos:", recipe)
-            return
-        
         with st.container():
-            # Card principal
-            st.markdown(f"### {recipe['titulo']}")
+            st.header(recipe['titulo'])
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.write("⏰ Tempo")
+                st.write(recipe.get('tempo_preparo', 'N/A'))
+            with col2:
+                st.write("🍽️ Porções")
+                st.write(recipe.get('porcoes', 'N/A'))
+            with col3:
+                st.write("📊 Dificuldade")
+                st.write(recipe.get('dificuldade', 'N/A'))
+
             if recipe.get('descricao'):
+                st.write("📝 Descrição")
                 st.write(recipe['descricao'])
-            
-            # Métricas em linha
-            cols = st.columns(3)
-            with cols[0]:
-                st.metric("⏱️ Tempo", recipe.get('tempo_preparo', 'N/A'))
-            with cols[1]:
-                st.metric("🍽️ Porções", recipe.get('porcoes', 'N/A'))
-            with cols[2]:
-                st.metric("📊 Dificuldade", recipe.get('dificuldade', 'N/A'))
-            
-            # Informações nutricionais
-            if recipe.get('informacoes_nutricionais'):
-                with st.expander("📊 Informações Nutricionais"):
-                    info = recipe['informacoes_nutricionais']
-                    nutri_cols = st.columns(5)
-                    with nutri_cols[0]:
-                        st.metric("Calorias", info.get('calorias', 'N/A'))
-                    with nutri_cols[1]:
-                        st.metric("Proteínas", info.get('proteinas', 'N/A'))
-                    with nutri_cols[2]:
-                        st.metric("Carboidratos", info.get('carboidratos', 'N/A'))
-                    with nutri_cols[3]:
-                        st.metric("Gorduras", info.get('gorduras', 'N/A'))
-                    with nutri_cols[4]:
-                        st.metric("Fibras", info.get('fibras', 'N/A'))
-            
-            # Detalhes da receita
-            with st.expander("👩‍🍳 Ver receita completa"):
-                st.markdown(format_recipe(recipe))
-            
-            st.divider()
-            
+
+            if recipe.get('ingredientes'):
+                st.write("🥗 Ingredientes")
+                for ing in recipe['ingredientes']:
+                    st.write(f"• {ing}")
+
+            if recipe.get('modo_preparo'):
+                st.write("👩‍🍳 Modo de Preparo")
+                for i, step in enumerate(recipe['modo_preparo'], 1):
+                    st.write(f"{i}. {step}")
+
+            if recipe.get('utensilios'):
+                st.write("🔪 Utensílios")
+                st.write(recipe['utensilios'])
+
+            if recipe.get('harmonizacao'):
+                st.write("🍷 Harmonização")
+                st.write(recipe['harmonizacao'])
+
+            info_nutri = recipe.get('informacoes_nutricionais', {})
+            if any(info_nutri.values()):
+                st.write("📊 Informações Nutricionais")
+                col1, col2, col3, col4, col5 = st.columns(5)
+                with col1:
+                    st.metric("Calorias", info_nutri.get('calorias', 'N/A'))
+                with col2:
+                    st.metric("Proteínas", info_nutri.get('proteinas', 'N/A'))
+                with col3:
+                    st.metric("Carboidratos", info_nutri.get('carboidratos', 'N/A'))
+                with col4:
+                    st.metric("Gorduras", info_nutri.get('gorduras', 'N/A'))
+                with col5:
+                    st.metric("Fibras", info_nutri.get('fibras', 'N/A'))
+
+            beneficios = recipe.get('beneficios_funcionais', [])
+            if beneficios:
+                st.write("🌿 Benefícios Funcionais")
+                for b in beneficios:
+                    st.write(f"• {b}")
+
+            dicas = recipe.get('dicas', [])
+            if dicas:
+                st.write("💡 Dicas")
+                for d in dicas:
+                    st.write(f"• {d}")
+
     except Exception as e:
         st.error(f"Erro ao renderizar receita: {str(e)}")
         st.write("Dados recebidos:", recipe)
@@ -365,7 +400,7 @@ def main():
             if receitas:
                 st.success(f"Encontradas {len(receitas)} receitas!")
                 for receita in receitas:
-                    render_recipe_card(receita)
+                    render_recipe_preview(receita)
             else:
                 st.warning("Nenhuma receita encontrada. Que tal me perguntar diretamente? Posso criar uma receita especialmente para você!")
 

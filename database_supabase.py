@@ -112,37 +112,32 @@ class ReceitasDB:
         """Busca receitas no banco de dados por título ou ingredientes"""
         try:
             if not query:
-                data = self.supabase.table('receitas').select('*').execute()
-                return [ReceitaAdapter.to_chat_format(receita) for receita in data.data]
+                data = self.supabase.table('receitas').select('titulo,descricao,ingredientes').execute()
+                return [self._criar_resumo_receita(receita) for receita in data.data]
 
             # Limpa e normaliza a query
             query = query.strip().lower()
             
             # Busca usando filter com or
-            data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
-            
-            st.write("DEBUG - Query:", query)
-            st.write("DEBUG - Dados brutos do Supabase:", data.data)
+            data = self.supabase.table('receitas').select('titulo,descricao,ingredientes').filter('titulo', 'ilike', f'%{query}%').execute()
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
-                data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
-                st.write("DEBUG - Buscando nos ingredientes...")
-                st.write("DEBUG - Dados brutos do Supabase:", data.data)
+                data = self.supabase.table('receitas').select('titulo,descricao,ingredientes').filter('ingredientes', 'ilike', f'%{query}%').execute()
             
             if not data.data:
                 st.warning(f"Nenhuma receita encontrada para: {query}")
                 return []
             
-            # Converte cada receita para o formato do chat
+            # Cria resumo das receitas encontradas
             receitas = []
             for receita in data.data:
-                receita_formatada = ReceitaAdapter.to_chat_format(receita)
-                if receita_formatada:  # Só adiciona se a conversão foi bem sucedida
-                    receitas.append(receita_formatada)
+                resumo = self._criar_resumo_receita(receita)
+                if resumo:  # Só adiciona se a conversão foi bem sucedida
+                    receitas.append(resumo)
             
             if not receitas:
-                st.warning("Nenhuma receita válida encontrada após conversão")
+                st.warning("Nenhuma receita válida encontrada")
             else:
                 st.success(f"Encontradas {len(receitas)} receitas")
             
@@ -150,9 +145,44 @@ class ReceitasDB:
                 
         except Exception as e:
             st.error(f"Erro ao buscar receitas: {str(e)}")
-            import traceback
-            st.error(f"Stack trace completo: {traceback.format_exc()}")
             return []
+
+    def _criar_resumo_receita(self, receita: Dict) -> Dict:
+        """Cria um resumo da receita com apenas as informações essenciais"""
+        try:
+            # Extrai os primeiros ingredientes (limitado a 3) para preview
+            ingredientes_raw = receita.get('ingredientes', '')
+            if isinstance(ingredientes_raw, str):
+                ingredientes = [ing.strip() for ing in ingredientes_raw.split('\n') if ing.strip()][:3]
+                if len(ingredientes_raw.split('\n')) > 3:
+                    ingredientes.append('...')
+            else:
+                ingredientes = []
+
+            return {
+                'id': receita.get('id', ''),
+                'titulo': str(receita.get('titulo', '')).strip().upper(),
+                'descricao': str(receita.get('descricao', '')).strip(),
+                'preview_ingredientes': ingredientes
+            }
+        except Exception as e:
+            st.error(f"Erro ao criar resumo da receita: {str(e)}")
+            return {}
+
+    def buscar_receita_por_id(self, receita_id: str) -> Optional[Dict]:
+        """Busca uma receita específica pelo ID"""
+        try:
+            data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
+            
+            if not data.data:
+                st.warning(f"Receita não encontrada: {receita_id}")
+                return None
+            
+            return ReceitaAdapter.to_chat_format(data.data[0])
+                
+        except Exception as e:
+            st.error(f"Erro ao buscar receita: {str(e)}")
+            return None
 
     @staticmethod
     @st.cache_data(ttl=3600)
