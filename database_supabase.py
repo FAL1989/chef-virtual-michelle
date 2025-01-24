@@ -109,32 +109,42 @@ class ReceitasDB:
             return False
 
     def buscar_receitas(self, query: str = None) -> List[Dict]:
-        """Busca receitas no banco de dados"""
+        """Busca receitas no banco de dados por título ou ingredientes"""
         try:
-            if query:
-                # Busca por título usando filter com ilike
-                data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
-                
-                st.write("DEBUG - Query:", query)
-                st.write("DEBUG - Dados brutos do Supabase:", data.data)
-                
-                if not data.data:
-                    st.warning("Nenhum dado retornado do Supabase")
-                    return []
-                
-                # Converte cada receita para o formato do chat
-                return [ReceitaAdapter.to_chat_format(receita) for receita in data.data]
-            else:
-                # Retorna todas as receitas
+            if not query:
                 data = self.supabase.table('receitas').select('*').execute()
-                
-                if not data.data:
-                    return []
-                    
                 return [ReceitaAdapter.to_chat_format(receita) for receita in data.data]
+
+            # Limpa e normaliza a query
+            query = query.strip().lower()
+            
+            # Busca por título e ingredientes usando textSearch
+            data = self.supabase.table('receitas').select('*').or_(
+                f'titulo.ilike.%{query}%,ingredientes.ilike.%{query}%'
+            ).execute()
+            
+            st.write("DEBUG - Query:", query)
+            st.write("DEBUG - Dados brutos do Supabase:", data.data)
+            
+            if not data.data:
+                st.warning(f"Nenhuma receita encontrada para: {query}")
+                return []
+            
+            # Converte cada receita para o formato do chat
+            receitas = []
+            for receita in data.data:
+                receita_formatada = ReceitaAdapter.to_chat_format(receita)
+                if receita_formatada:  # Só adiciona se a conversão foi bem sucedida
+                    receitas.append(receita_formatada)
+            
+            if not receitas:
+                st.warning("Nenhuma receita válida encontrada após conversão")
+            
+            return receitas
                 
         except Exception as e:
             st.error(f"Erro ao buscar receitas: {str(e)}")
+            st.error("Stack trace completo:", exc_info=True)
             return []
 
     @staticmethod
