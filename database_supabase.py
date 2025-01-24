@@ -252,11 +252,25 @@ class ReceitasDB(DatabaseInterface):
                 # Normaliza a query
                 query_upper = query.strip().upper()
                 
-                # Busca usando filter com operador SQL LIKE
+                # Busca usando ilike para case-insensitive
                 data = (self.supabase.table("receitas")
                        .select("*")
-                       .filter("titulo", "like", f"%{query_upper}%")
+                       .ilike("titulo", f"%{query_upper}%")
                        .execute())
+
+                # Se não encontrou nada, tenta buscar nos ingredientes
+                if not data.data:
+                    data = (self.supabase.table("receitas")
+                           .select("*")
+                           .ilike("ingredientes", f"%{query_upper}%")
+                           .execute())
+
+                # Se ainda não encontrou, tenta buscar na descrição
+                if not data.data:
+                    data = (self.supabase.table("receitas")
+                           .select("*")
+                           .ilike("descricao", f"%{query_upper}%")
+                           .execute())
 
             # Converte para o formato do chat e filtra valores None
             receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data if r]
@@ -418,35 +432,48 @@ class ReceitaAdapter:
     def to_db_format(receita_chat: Dict) -> Dict:
         """Converte do formato rico do chat para o formato do banco"""
         try:
+            # Garante que o título está em maiúsculo
+            titulo = str(receita_chat.get('titulo', '')).strip().upper()
+            if not titulo:
+                logger.warning("Tentativa de salvar receita sem título")
+                return None
+
             # Converte arrays para strings com quebras de linha
-            ingredientes = '\n'.join(receita_chat.get('ingredientes', [])) if isinstance(receita_chat.get('ingredientes'), list) else str(receita_chat.get('ingredientes', ''))
-            modo_preparo = '\n'.join(receita_chat.get('modo_preparo', [])) if isinstance(receita_chat.get('modo_preparo'), list) else str(receita_chat.get('modo_preparo', ''))
+            ingredientes = []
+            if isinstance(receita_chat.get('ingredientes'), list):
+                ingredientes = [str(ing).strip() for ing in receita_chat['ingredientes'] if ing]
+            elif isinstance(receita_chat.get('ingredientes'), str):
+                ingredientes = [line.strip() for line in receita_chat['ingredientes'].split('\n') if line.strip()]
+            
+            modo_preparo = []
+            if isinstance(receita_chat.get('modo_preparo'), list):
+                modo_preparo = [str(step).strip() for step in receita_chat['modo_preparo'] if step]
+            elif isinstance(receita_chat.get('modo_preparo'), str):
+                modo_preparo = [line.strip() for line in receita_chat['modo_preparo'].split('\n') if line.strip()]
             
             # Garante que informações nutricionais tenham a estrutura correta
-            info_nutri = receita_chat.get('informacoes_nutricionais', {})
-            if not isinstance(info_nutri, dict):
-                info_nutri = {
-                    'calorias': 0.0,
-                    'proteinas': 0.0,
-                    'carboidratos': 0.0,
-                    'gorduras': 0.0,
-                    'fibras': 0.0
-                }
+            info_nutri = {
+                'calorias': float(receita_chat.get('informacoes_nutricionais', {}).get('calorias', 0)),
+                'proteinas': float(receita_chat.get('informacoes_nutricionais', {}).get('proteinas', 0)),
+                'carboidratos': float(receita_chat.get('informacoes_nutricionais', {}).get('carboidratos', 0)),
+                'gorduras': float(receita_chat.get('informacoes_nutricionais', {}).get('gorduras', 0)),
+                'fibras': float(receita_chat.get('informacoes_nutricionais', {}).get('fibras', 0))
+            }
             
-            # Garante que arrays sejam sempre listas
-            beneficios = receita_chat.get('beneficios_funcionais', [])
-            if not isinstance(beneficios, list):
-                beneficios = []
-                
-            dicas = receita_chat.get('dicas', [])
-            if not isinstance(dicas, list):
-                dicas = []
+            # Garante que arrays sejam sempre listas de strings
+            beneficios = []
+            if isinstance(receita_chat.get('beneficios_funcionais'), list):
+                beneficios = [str(b).strip() for b in receita_chat['beneficios_funcionais'] if b]
+            
+            dicas = []
+            if isinstance(receita_chat.get('dicas'), list):
+                dicas = [str(d).strip() for d in receita_chat['dicas'] if d]
             
             return {
-                'titulo': str(receita_chat.get('titulo', '')).strip().upper(),
+                'titulo': titulo,
                 'descricao': str(receita_chat.get('descricao', '')).strip(),
-                'ingredientes': ingredientes.strip(),
-                'modo_preparo': modo_preparo.strip(),
+                'ingredientes': '\n'.join(ingredientes),
+                'modo_preparo': '\n'.join(modo_preparo),
                 'tempo_preparo': str(receita_chat.get('tempo_preparo', '')).strip(),
                 'porcoes': str(receita_chat.get('porcoes', '')).strip(),
                 'dificuldade': str(receita_chat.get('dificuldade', '')).strip(),
@@ -457,8 +484,8 @@ class ReceitaAdapter:
                 'dicas': dicas
             }
         except Exception as e:
-            st.error(f"Erro ao converter para formato DB: {str(e)}")
-            return {}
+            logger.error(f"Erro ao converter para formato DB: {str(e)}")
+            return None
 
     @staticmethod
     def to_chat_format(receita_db: Dict) -> Dict:
