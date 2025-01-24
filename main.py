@@ -169,6 +169,8 @@ def search_recipes():
     query = st.text_input("Digite sua busca:")
     
     if query:
+        # Cria uma nova instância do ReceitasDB
+        db = ReceitasDB()
         receitas = db.buscar_receitas_cached(query)
         if receitas:
             st.success(f"Encontradas {len(receitas)} receitas:")
@@ -428,7 +430,8 @@ def main():
         busca = st.text_input("Digite sua busca:", key="busca")
         
         if busca:
-            receitas = ReceitasDB.buscar_receitas_cached(busca)
+            # Usa a mesma instância do db criada acima
+            receitas = db.buscar_receitas_cached(busca)
             if receitas:
                 st.success(f"Encontradas {len(receitas)} receitas!")
                 for receita in receitas:
