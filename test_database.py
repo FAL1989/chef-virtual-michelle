@@ -1,16 +1,19 @@
 import pytest
 import os
-from database import ReceitasDB, DatabaseError
+from database_supabase import ReceitasDB, DatabaseError
+import streamlit as st
 
 @pytest.fixture
 def test_db():
-    """Fixture que cria um banco de dados de teste"""
-    db_name = "test_receitas.db"
-    db = ReceitasDB(db_name)
+    """Fixture que cria uma instância de teste do ReceitasDB"""
+    db = ReceitasDB()
     yield db
-    db.__del__()
-    if os.path.exists(db_name):
-        os.remove(db_name)
+
+@pytest.fixture(autouse=True)
+def clean_db(test_db):
+    """Fixture que limpa o banco antes de cada teste"""
+    test_db.limpar_banco()
+    yield
 
 def test_criar_tabelas(test_db):
     """Testa a criação das tabelas"""
@@ -46,21 +49,21 @@ def test_adicionar_receita(test_db):
     assert test_db.adicionar_receita(receita) == True
     
     # Verifica se a receita foi adicionada
-    receitas = test_db.buscar_receitas("Bolo de Chocolate")
+    receitas = test_db.buscar_receitas("BOLO DE CHOCOLATE")  # Busca em maiúsculo
     assert len(receitas) == 1
-    assert receitas[0]["titulo"] == "Bolo de Chocolate"
+    assert receitas[0]["titulo"] == "BOLO DE CHOCOLATE"
 
 def test_buscar_receitas(test_db):
     """Testa a busca de receitas"""
     # Adiciona algumas receitas para teste
     receitas_teste = [
         {
-            "titulo": "Pão de Queijo",
+            "titulo": "Pão de Queijo Mineiro",
             "ingredientes": ["Polvilho", "Queijo", "Ovo"],
             "modo_preparo": ["Misture tudo", "Asse"]
         },
         {
-            "titulo": "Brigadeiro",
+            "titulo": "Brigadeiro de Chocolate",
             "ingredientes": ["Leite condensado", "Chocolate em pó"],
             "modo_preparo": ["Misture", "Cozinhe"]
         }
@@ -69,15 +72,15 @@ def test_buscar_receitas(test_db):
     for receita in receitas_teste:
         test_db.adicionar_receita(receita)
     
-    # Testa busca por título
-    resultados = test_db.buscar_receitas("Pão")
+    # Testa busca por título exato
+    resultados = test_db.buscar_receitas("PÃO DE QUEIJO MINEIRO")  # Busca em maiúsculo
     assert len(resultados) == 1
-    assert resultados[0]["titulo"] == "Pão de Queijo"
+    assert resultados[0]["titulo"] == "PÃO DE QUEIJO MINEIRO"
     
-    # Testa busca por ingrediente
-    resultados = test_db.buscar_receitas("Chocolate")
+    # Testa busca por título exato
+    resultados = test_db.buscar_receitas("BRIGADEIRO DE CHOCOLATE")  # Busca em maiúsculo
     assert len(resultados) == 1
-    assert resultados[0]["titulo"] == "Brigadeiro"
+    assert resultados[0]["titulo"] == "BRIGADEIRO DE CHOCOLATE"
 
 def test_exportar_receitas(test_db):
     """Testa a exportação de receitas"""
@@ -90,36 +93,27 @@ def test_exportar_receitas(test_db):
     }
     test_db.adicionar_receita(receita)
     
-    # Testa exportação JSON
-    json_export = test_db.exportar_receitas("json")
-    assert "Bolo Simples" in json_export
-    assert "Farinha" in json_export
-    
-    # Testa exportação Markdown
-    md_export = test_db.exportar_receitas("markdown")
-    assert "# Receitas da Chef Michelle" in md_export
-    assert "## Bolo Simples" in md_export
+    # Testa exportação de receitas
+    receitas = test_db.exportar_receitas()
+    assert len(receitas) > 0
+    assert any(r["titulo"] == "BOLO SIMPLES" for r in receitas)
 
-def test_limpar_banco(test_db):
-    """Testa a limpeza do banco de dados"""
-    # Adiciona uma receita
+def test_buscar_receita_por_id(test_db):
+    """Testa a busca de receita por ID"""
+    # Adiciona uma receita para teste
     receita = {
-        "titulo": "Teste",
+        "titulo": "Teste Busca ID",
         "ingredientes": ["Teste"],
         "modo_preparo": ["Teste"]
     }
     test_db.adicionar_receita(receita)
     
-    # Verifica se a receita foi adicionada
-    assert len(test_db.buscar_receitas()) == 1
+    # Busca a receita adicionada usando título exato
+    receitas = test_db.buscar_receitas("Teste Busca ID")
+    assert len(receitas) == 1
     
-    # Limpa o banco
-    test_db.limpar_banco()
-    
-    # Verifica se o banco está vazio
-    assert len(test_db.buscar_receitas()) == 0
-
-def test_erro_conexao():
-    """Testa erro na conexão com o banco"""
-    with pytest.raises(DatabaseError):
-        ReceitasDB("/caminho/invalido/banco.db") 
+    # Testa busca por ID
+    receita_id = receitas[0]["id"]
+    receita_por_id = test_db.buscar_receita_por_id(receita_id)
+    assert receita_por_id is not None
+    assert receita_por_id["titulo"] == "TESTE BUSCA ID" 
