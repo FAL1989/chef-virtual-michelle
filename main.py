@@ -272,24 +272,31 @@ def render_message_history():
 
 def extract_search_terms(prompt: str) -> str:
     """Extrai termos de busca de uma pergunta"""
-    # Palavras que indicam busca por receita
-    recipe_indicators = [
-        'receita de', 'receitas de', 'como fazer', 'como preparar',
-        'tem alguma receita', 'existe alguma receita', 'sabe fazer', 'conhece'
-    ]
-    
     # Remove pontuação e converte para minúsculas
     prompt = prompt.lower()
     
-    # Remove os indicadores de receita
-    for indicator in recipe_indicators:
-        if indicator in prompt:
-            prompt = prompt.replace(indicator, '')
+    # Remove palavras comuns de perguntas
+    common_phrases = [
+        'tem alguma receita',
+        'tem receita',
+        'sabe fazer',
+        'como fazer',
+        'tem como fazer'
+    ]
     
-    # Remove pontuação mantendo espaços
+    for phrase in common_phrases:
+        if prompt.startswith(phrase):
+            prompt = prompt[len(phrase):].strip()
+            break
+    
+    # Remove preposições comuns
+    prepositions = [' de ', ' do ', ' da ', ' com ']
+    for prep in prepositions:
+        if prep in prompt:
+            prompt = prompt.replace(prep, ' ')
+    
+    # Remove pontuação e espaços extras
     prompt = ''.join(c if c.isalnum() or c.isspace() else ' ' for c in prompt)
-    
-    # Remove espaços extras
     prompt = ' '.join(prompt.split())
     
     return prompt.strip()
