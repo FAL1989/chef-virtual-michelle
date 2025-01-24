@@ -181,31 +181,42 @@ class ReceitaAdapter:
         """Converte do formato rico do chat para o formato do banco"""
         try:
             # Converte arrays para strings com quebras de linha
-            ingredientes = '\n'.join(receita_chat.get('ingredientes', [])) if isinstance(receita_chat.get('ingredientes'), list) else ''
-            modo_preparo = '\n'.join(receita_chat.get('modo_preparo', [])) if isinstance(receita_chat.get('modo_preparo'), list) else ''
+            ingredientes = '\n'.join(receita_chat.get('ingredientes', [])) if isinstance(receita_chat.get('ingredientes'), list) else str(receita_chat.get('ingredientes', ''))
+            modo_preparo = '\n'.join(receita_chat.get('modo_preparo', [])) if isinstance(receita_chat.get('modo_preparo'), list) else str(receita_chat.get('modo_preparo', ''))
             
-            # Mantém os campos JSONB como estão
-            info_nutri = receita_chat.get('informacoes_nutricionais', {
-                'calorias': 0,
-                'proteinas': 0,
-                'carboidratos': 0,
-                'gorduras': 0,
-                'fibras': 0
-            })
+            # Garante que informações nutricionais tenham a estrutura correta
+            info_nutri = receita_chat.get('informacoes_nutricionais', {})
+            if not isinstance(info_nutri, dict):
+                info_nutri = {
+                    'calorias': 0.0,
+                    'proteinas': 0.0,
+                    'carboidratos': 0.0,
+                    'gorduras': 0.0,
+                    'fibras': 0.0
+                }
+            
+            # Garante que arrays sejam sempre listas
+            beneficios = receita_chat.get('beneficios_funcionais', [])
+            if not isinstance(beneficios, list):
+                beneficios = []
+                
+            dicas = receita_chat.get('dicas', [])
+            if not isinstance(dicas, list):
+                dicas = []
             
             return {
-                'titulo': str(receita_chat.get('titulo', '')),
-                'descricao': str(receita_chat.get('descricao', '')),
-                'ingredientes': ingredientes,
-                'modo_preparo': modo_preparo,
-                'tempo_preparo': str(receita_chat.get('tempo_preparo', '')),
-                'porcoes': str(receita_chat.get('porcoes', '')),
-                'dificuldade': str(receita_chat.get('dificuldade', '')),
-                'utensilios': str(receita_chat.get('utensilios', '')),
-                'harmonizacao': str(receita_chat.get('harmonizacao', '')),
+                'titulo': str(receita_chat.get('titulo', '')).strip().upper(),
+                'descricao': str(receita_chat.get('descricao', '')).strip(),
+                'ingredientes': ingredientes.strip(),
+                'modo_preparo': modo_preparo.strip(),
+                'tempo_preparo': str(receita_chat.get('tempo_preparo', '')).strip(),
+                'porcoes': str(receita_chat.get('porcoes', '')).strip(),
+                'dificuldade': str(receita_chat.get('dificuldade', '')).strip(),
+                'utensilios': str(receita_chat.get('utensilios', '')).strip(),
+                'harmonizacao': str(receita_chat.get('harmonizacao', '')).strip(),
                 'informacoes_nutricionais': info_nutri,
-                'beneficios_funcionais': receita_chat.get('beneficios_funcionais', []),
-                'dicas': receita_chat.get('dicas', [])
+                'beneficios_funcionais': beneficios,
+                'dicas': dicas
             }
         except Exception as e:
             st.error(f"Erro ao converter para formato DB: {str(e)}")
@@ -215,33 +226,64 @@ class ReceitaAdapter:
     def to_chat_format(receita_db: Dict) -> Dict:
         """Converte do formato do banco para o formato rico do chat"""
         try:
-            # Converte strings com quebras de linha para arrays
-            ingredientes = receita_db.get('ingredientes', '').split('\n') if receita_db.get('ingredientes') else []
-            modo_preparo = receita_db.get('modo_preparo', '').split('\n') if receita_db.get('modo_preparo') else []
+            # Limpa e normaliza ingredientes
+            ingredientes_raw = receita_db.get('ingredientes', '')
+            if isinstance(ingredientes_raw, str):
+                # Remove duplicatas e linhas vazias
+                ingredientes = [ing.strip() for ing in ingredientes_raw.split('\n') if ing.strip()]
+                # Remove duplicatas mantendo a ordem
+                ingredientes = list(dict.fromkeys(ingredientes))
+            else:
+                ingredientes = []
+            
+            # Limpa e normaliza modo de preparo
+            preparo_raw = receita_db.get('modo_preparo', '')
+            if isinstance(preparo_raw, str):
+                # Remove duplicatas e linhas vazias
+                preparo = [step.strip() for step in preparo_raw.split('\n') if step.strip()]
+                # Remove duplicatas mantendo a ordem
+                preparo = list(dict.fromkeys(preparo))
+            else:
+                preparo = []
             
             # Garante que campos JSONB sejam dicts/lists
             info_nutri = receita_db.get('informacoes_nutricionais', {})
             if isinstance(info_nutri, str):
-                info_nutri = json.loads(info_nutri)
-                
+                try:
+                    info_nutri = json.loads(info_nutri)
+                except:
+                    info_nutri = {
+                        'calorias': 0.0,
+                        'proteinas': 0.0,
+                        'carboidratos': 0.0,
+                        'gorduras': 0.0,
+                        'fibras': 0.0
+                    }
+                    
             beneficios = receita_db.get('beneficios_funcionais', [])
             if isinstance(beneficios, str):
-                beneficios = json.loads(beneficios)
-                
+                try:
+                    beneficios = json.loads(beneficios)
+                except:
+                    beneficios = []
+                    
             dicas = receita_db.get('dicas', [])
             if isinstance(dicas, str):
-                dicas = json.loads(dicas)
+                try:
+                    dicas = json.loads(dicas)
+                except:
+                    dicas = []
             
             return {
-                'titulo': str(receita_db.get('titulo', '')),
-                'descricao': str(receita_db.get('descricao', '')),
-                'ingredientes': [ing.strip() for ing in ingredientes if ing.strip()],
-                'modo_preparo': [step.strip() for step in modo_preparo if step.strip()],
-                'tempo_preparo': str(receita_db.get('tempo_preparo', '')),
-                'porcoes': str(receita_db.get('porcoes', '')),
-                'dificuldade': str(receita_db.get('dificuldade', '')),
-                'utensilios': str(receita_db.get('utensilios', '')),
-                'harmonizacao': str(receita_db.get('harmonizacao', '')),
+                'titulo': str(receita_db.get('titulo', '')).strip().upper(),
+                'descricao': str(receita_db.get('descricao', '')).strip(),
+                'ingredientes': ingredientes,
+                'modo_preparo': preparo,
+                'tempo_preparo': str(receita_db.get('tempo_preparo', '')).strip(),
+                'porcoes': str(receita_db.get('porcoes', '')).strip(),
+                'dificuldade': str(receita_db.get('dificuldade', '')).strip(),
+                'utensilios': str(receita_db.get('utensilios', '')).strip(),
+                'harmonizacao': str(receita_db.get('harmonizacao', '')).strip(),
                 'informacoes_nutricionais': info_nutri,
                 'beneficios_funcionais': beneficios,
                 'dicas': dicas
