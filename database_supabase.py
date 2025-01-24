@@ -224,10 +224,10 @@ class ReceitasDB:
             
             st.write("DEBUG - ID convertido:", receita_id)
             
-            # Faz a busca no Supabase
+            # Faz a busca no Supabase usando o ID como está
             data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
             
-            st.write("DEBUG - Resposta do Supabase:", data)
+            st.write("DEBUG - Resposta do Supabase:", data.data)
             
             if not data.data:
                 st.warning(f"Receita não encontrada: {receita_id}")
@@ -237,7 +237,7 @@ class ReceitasDB:
             st.write("DEBUG - Dados brutos:", data.data[0])
             
             # Converte para o formato do chat
-            receita = ReceitaAdapter.to_chat_format(data.data[0])
+            receita = self._converter_formato_db(data.data[0])
             
             # Debug para verificar a conversão
             st.write("DEBUG - Dados convertidos:", receita)
