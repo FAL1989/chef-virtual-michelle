@@ -18,22 +18,15 @@ class DatabaseError(Exception):
 class ReceitasDB:
     def __init__(self):
         """Inicializa a conexão com o banco de dados"""
-        try:
-            url = os.getenv("SUPABASE_URL")
-            key = os.getenv("SUPABASE_KEY")
-            
-            if not url or not key:
-                st.error("⚠️ Erro: Variáveis de ambiente SUPABASE_URL e SUPABASE_KEY não configuradas!")
-                st.info("Por favor, configure as variáveis de ambiente no arquivo .env ou nas configurações do Streamlit Cloud.")
-                st.stop()
-            
-            self.supabase = create_client(url, key)
-            self._cache = {}
-            
-        except Exception as e:
-            st.error("⚠️ Erro ao conectar com o banco de dados!")
-            st.info("Verifique se as credenciais do Supabase estão corretas.")
+        url = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
+        key = st.secrets.get("SUPABASE_KEY", os.getenv("SUPABASE_KEY", ""))
+        
+        if not url or not key:
+            st.error("⚠️ Credenciais do Supabase não encontradas!")
             st.stop()
+            
+        self.supabase = create_client(url, key)
+        self._cache = {}
     
     def _normalizar_texto(self, texto: str) -> str:
         """Normaliza o texto removendo acentos e convertendo para minúsculo"""
@@ -44,10 +37,7 @@ class ReceitasDB:
         if not ingredientes_raw:
             return []
         
-        # Divide por quebras de linha e limpa
         ingredientes = [ing.strip() for ing in ingredientes_raw.split('\n') if ing.strip()]
-        
-        # Limita a 3 ingredientes + reticências para o preview
         if len(ingredientes) > 3:
             return ingredientes[:3] + ["..."]
         return ingredientes
@@ -55,16 +45,13 @@ class ReceitasDB:
     def _criar_resumo_receita(self, receita_db: Dict) -> Optional[Dict]:
         """Cria um resumo da receita para preview"""
         try:
-            # Extrai dados básicos
             receita_id = str(receita_db.get('id', '')).strip()
             if not receita_id:
                 return None
             
-            # Processa ingredientes
             ingredientes_raw = receita_db.get('ingredientes', '')
             preview_ingredientes = self._processar_ingredientes(ingredientes_raw)
             
-            # Monta o resumo
             return {
                 'id': receita_id,
                 'titulo': str(receita_db.get('titulo', '')).strip().upper(),
