@@ -6,11 +6,8 @@ from supabase import create_client, Client
 import streamlit as st
 import os
 
-# Configuração do logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DatabaseError(Exception):
@@ -21,8 +18,8 @@ class ReceitasDB:
     def __init__(self):
         """Inicializa a conexão com o Supabase"""
         try:
-            url = st.secrets["supabase_url"]
-            key = st.secrets["supabase_key"]
+            url = st.secrets["SUPABASE_URL"]
+            key = st.secrets["SUPABASE_KEY"]
             self.supabase: Client = create_client(url, key)
             logger.info("Conexão estabelecida com Supabase")
             self.criar_tabelas()
