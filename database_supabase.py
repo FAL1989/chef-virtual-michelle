@@ -243,47 +243,43 @@ class ReceitasDB(DatabaseInterface):
             query = clean_search_query(query)
             logger.info(f"Buscando receitas com query: {query}")
             
-            # Verifica a estrutura dos dados primeiro
-            self.verificar_estrutura()
-            
-            # Busca usando a sintaxe correta para campos JSONB e TEXT
-            query_sql = f"titulo::text ILIKE '%{query}%'"
+            # Busca usando a sintaxe correta para campos TEXT
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .or_(query_sql)
+                   .or_(f"titulo.ilike.%{query}%,ingredientes.ilike.%{query}%,descricao.ilike.%{query}%")
                    .execute())
             
-            # Se não encontrou no título, tenta nos ingredientes
-            if not data.data:
-                query_sql = f"ingredientes::text ILIKE '%{query}%'"
-                data = (self.supabase.table('receitas')
-                       .select('*')
-                       .or_(query_sql)
-                       .execute())
-            
-            # Se ainda não encontrou, tenta na descrição
-            if not data.data:
-                query_sql = f"descricao::text ILIKE '%{query}%'"
-                data = (self.supabase.table('receitas')
-                       .select('*')
-                       .or_(query_sql)
-                       .execute())
-            
-            # Combina os resultados removendo duplicatas por ID
-            receitas_dict = {}
-            
-            if data and data.data:
-                for receita in data.data:
-                    receita_id = str(receita.get('id')).strip()
-                    if receita_id and receita_id not in receitas_dict:
-                        receitas_dict[receita_id] = receita
-            
             # Converte para o formato do chat
-            receitas = [ReceitaAdapter.to_chat_format(r) for r in receitas_dict.values()]
+            receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data]
             
             logger.info(f"Encontradas {len(receitas)} receitas")
-            st.write("DEBUG - Resultados da busca:", len(receitas))
+            return receitas
             
+        except Exception as e:
+            logger.error(f"Erro na busca: {str(e)}")
+            st.error(f"Erro ao buscar receitas: {str(e)}")
+            return []
+
+    def buscar_receitas_por_texto(self, query: str) -> List[Dict]:
+        """Busca receitas por texto livre (usado no chat)"""
+        try:
+            if not query:
+                return []
+            
+            # Limpa e normaliza a query
+            query = clean_search_query(query)
+            logger.info(f"Buscando receitas com query: {query}")
+            
+            # Busca usando a sintaxe correta para campos TEXT
+            data = (self.supabase.table('receitas')
+                   .select('*')
+                   .or_(f"titulo.ilike.%{query}%,ingredientes.ilike.%{query}%,descricao.ilike.%{query}%")
+                   .execute())
+            
+            # Converte para o formato do chat
+            receitas = [ReceitaAdapter.to_chat_format(r) for r in data.data]
+            
+            logger.info(f"Encontradas {len(receitas)} receitas")
             return receitas
             
         except Exception as e:

@@ -4,6 +4,10 @@ from database_supabase import ReceitasDB
 from typing import List, Dict
 
 SQL_CREATE_TABLES = """
+-- Habilitar extensões necessárias
+create extension if not exists pg_trgm;
+create extension if not exists pg_jsonschema;
+
 -- Tabela de receitas
 drop table if exists receitas cascade;
 
@@ -18,19 +22,40 @@ create table receitas (
     porcoes text,
     dificuldade text,
     harmonizacao text,
-    informacoes_nutricionais text default '{}',
-    beneficios_funcionais text default '[]',
-    dicas text default '[]',
+    informacoes_nutricionais jsonb default '{}'::jsonb,
+    beneficios_funcionais jsonb default '[]'::jsonb,
+    dicas jsonb default '[]'::jsonb,
     created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- Criar índices para busca em texto
+-- Índices para busca em texto
 create index if not exists idx_receitas_titulo_gin on receitas using gin (titulo gin_trgm_ops);
 create index if not exists idx_receitas_ingredientes_gin on receitas using gin (ingredientes gin_trgm_ops);
 create index if not exists idx_receitas_descricao_gin on receitas using gin (descricao gin_trgm_ops);
 
--- Habilitar extensão pg_trgm para busca por similaridade
-create extension if not exists pg_trgm;
+-- Índices para campos JSONB
+create index if not exists idx_receitas_info_nutri on receitas using gin (informacoes_nutricionais);
+create index if not exists idx_receitas_beneficios on receitas using gin (beneficios_funcionais);
+create index if not exists idx_receitas_dicas on receitas using gin (dicas);
+
+-- Validação de schema para campos JSONB
+alter table receitas 
+add constraint check_info_nutri 
+check (
+    jsonb_typeof(informacoes_nutricionais) = 'object' 
+    and informacoes_nutricionais ? 'calorias'
+    and informacoes_nutricionais ? 'proteinas'
+    and informacoes_nutricionais ? 'carboidratos'
+    and informacoes_nutricionais ? 'gorduras'
+    and informacoes_nutricionais ? 'fibras'
+);
+
+alter table receitas 
+add constraint check_arrays
+check (
+    jsonb_typeof(beneficios_funcionais) = 'array'
+    and jsonb_typeof(dicas) = 'array'
+);
 """
 
 def criar_tabelas(db: ReceitasDB):
