@@ -169,38 +169,43 @@ class ReceitasDB:
         """Busca receitas no banco de dados"""
         try:
             if query:
-                # Busca por título ou descrição
-                data = self.supabase.table('receitas').select('*').or_(
-                    f"titulo.ilike.%{query}%,descricao.ilike.%{query}%"
-                ).execute()
+                # Busca por título ou descrição usando a sintaxe correta do Supabase
+                data = self.supabase.table('receitas').select('*').ilike('titulo', f'%{query}%').execute()
+                
+                st.write("DEBUG - Query:", query)
+                st.write("DEBUG - Dados brutos do Supabase:", data.data)
+                
+                if not data.data:
+                    st.warning("Nenhum dado retornado do Supabase")
+                    return []
+                
+                # Converte cada receita para o formato esperado
+                receitas = []
+                for receita in data.data:
+                    # Se a receita vier como string, tenta converter para dict
+                    if isinstance(receita, str):
+                        try:
+                            receita = json.loads(receita)
+                        except json.JSONDecodeError:
+                            st.error(f"Erro ao decodificar receita: {receita}")
+                            continue
+                    
+                    receita_convertida = self._converter_formato_db(receita)
+                    if receita_convertida:
+                        receitas.append(receita_convertida)
+                
+                st.write("DEBUG - Dados convertidos:", receitas)
+                
+                return receitas
             else:
                 # Retorna todas as receitas
                 data = self.supabase.table('receitas').select('*').execute()
-            
-            st.write("DEBUG - Dados brutos do Supabase:", data.data)
-            
-            if not data.data:
-                st.warning("Nenhum dado retornado do Supabase")
-                return []
-            
-            # Converte cada receita para o formato esperado
-            receitas = []
-            for receita in data.data:
-                # Se a receita vier como string, tenta converter para dict
-                if isinstance(receita, str):
-                    try:
-                        receita = json.loads(receita)
-                    except json.JSONDecodeError:
-                        st.error(f"Erro ao decodificar receita: {receita}")
-                        continue
                 
-                receita_convertida = self._converter_formato_db(receita)
-                if receita_convertida:
-                    receitas.append(receita_convertida)
-            
-            st.write("DEBUG - Dados convertidos:", receitas)
-            
-            return receitas
+                if not data.data:
+                    return []
+                    
+                return [self._converter_formato_db(receita) for receita in data.data if self._converter_formato_db(receita)]
+                
         except Exception as e:
             st.error(f"Erro ao buscar receitas: {str(e)}")
             return []
