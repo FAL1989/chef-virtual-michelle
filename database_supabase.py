@@ -23,8 +23,12 @@ def clean_search_query(query: str) -> str:
         'o', 'que', 'os', 'as', 'um', 'uns', 'uma', 'umas', 'com', 'para',
         'por', 'em', 'no', 'na', 'nos', 'nas', 'do', 'da', 'dos', 'das',
         'posso', 'pode', 'fazer', 'como', 'onde', 'quando', 'qual', 'quais',
-        'aonde', 'porque', 'por que', 'usar', 'uso'
+        'aonde', 'porque', 'por que', 'usar', 'uso', 'de', 'e', 'ou', 'mas',
+        'porem', 'entao', 'assim', 'pois'
     }
+    
+    # Remove pontuação
+    query = ''.join(c for c in query if c.isalnum() or c.isspace())
     
     # Normaliza e divide em palavras
     words = normalize_text(query).split()
@@ -37,6 +41,66 @@ def clean_search_query(query: str) -> str:
         return normalize_text(query)
     
     return ' '.join(cleaned_words)
+
+def format_recipe_output(recipe: Dict) -> str:
+    """Formata a receita para exibição amigável"""
+    output = []
+    
+    # Título e descrição
+    output.append(f"# {recipe['titulo']}")
+    if recipe.get('descricao'):
+        output.append(f"\n{recipe['descricao']}\n")
+    
+    # Informações básicas
+    if recipe.get('tempo_preparo'):
+        output.append(f"⏰ Tempo de Preparo: {recipe['tempo_preparo']}")
+    if recipe.get('porcoes'):
+        output.append(f"🍽️ Porções: {recipe['porcoes']}")
+    if recipe.get('dificuldade'):
+        output.append(f"📊 Dificuldade: {recipe['dificuldade']}\n")
+    
+    # Ingredientes
+    if recipe.get('ingredientes'):
+        output.append("## Ingredientes:")
+        for ing in recipe['ingredientes']:
+            output.append(f"• {ing}")
+        output.append("")
+    
+    # Modo de preparo
+    if recipe.get('modo_preparo'):
+        output.append("## Modo de Preparo:")
+        for i, step in enumerate(recipe['modo_preparo'], 1):
+            output.append(f"{i}. {step}")
+        output.append("")
+    
+    # Informações nutricionais
+    info_nutri = recipe.get('informacoes_nutricionais', {})
+    if any(info_nutri.values()):
+        output.append("## Informações Nutricionais:")
+        for key, value in info_nutri.items():
+            if value:
+                output.append(f"• {key.title()}: {value}")
+        output.append("")
+    
+    # Benefícios funcionais
+    if recipe.get('beneficios_funcionais'):
+        output.append("## Benefícios Funcionais:")
+        for b in recipe['beneficios_funcionais']:
+            output.append(f"• {b}")
+        output.append("")
+    
+    # Dicas
+    if recipe.get('dicas'):
+        output.append("## Dicas:")
+        for d in recipe['dicas']:
+            output.append(f"• {d}")
+        output.append("")
+    
+    # Harmonização
+    if recipe.get('harmonizacao'):
+        output.append(f"## Harmonização:\n{recipe['harmonizacao']}")
+    
+    return "\n".join(output)
 
 class DatabaseError(Exception):
     """Exceção customizada para erros do banco de dados"""

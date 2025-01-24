@@ -284,10 +284,14 @@ def process_user_input(client: OpenAI, db: ReceitasDB):
                 if receitas_encontradas:
                     resposta = "Encontrei estas receitas no nosso banco de dados:\n\n"
                     for receita in receitas_encontradas:
-                        resposta += format_recipe(receita) + "\n---\n\n"
+                        resposta += db.format_recipe_output(receita) + "\n---\n\n"
                 else:
                     st.info("Não encontrei receitas existentes com esses ingredientes. Vou criar uma nova receita para você!")
-                    resposta = generate_new_recipe(client, prompt, db)
+                    nova_receita = generate_new_recipe(client, prompt, db)
+                    if nova_receita:
+                        resposta = db.format_recipe_output(nova_receita)
+                    else:
+                        resposta = "Desculpe, não consegui criar uma nova receita no momento."
                 
                 st.markdown(resposta)
                 st.session_state.messages.append({"role": "assistant", "content": resposta})
