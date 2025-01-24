@@ -163,7 +163,7 @@ def search_recipes():
     if query:
         # Cria uma nova instância do ReceitasDB
         db = ReceitasDB()
-        receitas = db.buscar_receitas_cached(query)
+        receitas = db.buscar_receitas(query)
         if receitas:
             st.write(f"Encontradas {len(receitas)} receitas:")
             for receita in receitas:
@@ -299,7 +299,7 @@ def process_user_input(client: OpenAI, db: ReceitasDB):
             with st.spinner("Processando sua solicitação..."):
                 # Extrai termos de busca da pergunta
                 search_terms = extract_search_terms(prompt)
-                receitas_encontradas = db.buscar_receitas(search_terms)
+                receitas_encontradas = db.buscar_receitas_por_texto(search_terms)
                 
                 if receitas_encontradas:
                     resposta = "Encontrei algumas receitas que podem te ajudar!\n\n"

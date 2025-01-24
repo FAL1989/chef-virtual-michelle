@@ -200,33 +200,60 @@ class ReceitasDB:
             logger.error(f"Erro ao adicionar receita: {e}")
             return False
 
-    def buscar_receitas(self, query: str = None) -> List[Dict]:
-        """Busca receitas no banco de dados por título ou ingredientes"""
+    def buscar_receitas_por_texto(self, query: str) -> List[Dict]:
+        """Busca receitas por texto livre (usado no chat)"""
         try:
-            st.write("DEBUG - Iniciando busca no banco. Query:", query)
+            # Normaliza a query
+            query = query.lower().strip()
             
-            if not query:
-                data = self.supabase.table('receitas').select('*').execute()
+            # Busca por título
+            data = (self.supabase.table('receitas')
+                    .select('*')
+                    .textcontains('titulo', query)
+                    .execute())
+            
+            if data.data:
                 return [ReceitaAdapter.to_chat_format(r) for r in data.data]
             
-            # Limpa e normaliza a query
-            query = clean_search_query(query)
-            st.write("DEBUG - Query limpa e normalizada:", query)
-            
-            # Busca por título usando ilike
-            data = self.supabase.table('receitas').select('*').ilike('titulo', f'%{query}%').execute()
-            st.write("DEBUG - Dados retornados do Supabase (busca por título):", data.data)
-            
-            # Se não encontrou no título, tenta nos ingredientes
-            if not data.data:
-                data = self.supabase.table('receitas').select('*').ilike('ingredientes', f'%{query}%').execute()
-                st.write("DEBUG - Dados retornados do Supabase (busca por ingredientes):", data.data)
+            # Se não encontrou por título, busca nos ingredientes
+            data = (self.supabase.table('receitas')
+                    .select('*')
+                    .textcontains('ingredientes', query)
+                    .execute())
             
             return [ReceitaAdapter.to_chat_format(r) for r in data.data]
-                
+            
         except Exception as e:
-            st.error(f"Erro ao buscar receitas: {str(e)}")
-            st.write("DEBUG - Stack trace completo:", str(e))
+            print(f"DEBUG - Erro ao buscar receitas: {str(e)}")
+            print(f"DEBUG - Stack trace completo: {e}")
+            return []
+
+    def buscar_receitas(self, query: str) -> List[Dict]:
+        """Busca receitas direto no banco (usado na interface de busca)"""
+        try:
+            # Normaliza a query
+            query = query.lower().strip()
+            
+            # Busca por título
+            data = (self.supabase.table('receitas')
+                    .select('*')
+                    .ilike('titulo', f'%{query}%')
+                    .execute())
+            
+            if data.data:
+                return [ReceitaAdapter.to_chat_format(r) for r in data.data]
+            
+            # Se não encontrou por título, busca nos ingredientes
+            data = (self.supabase.table('receitas')
+                    .select('*')
+                    .ilike('ingredientes', f'%{query}%')
+                    .execute())
+            
+            return [ReceitaAdapter.to_chat_format(r) for r in data.data]
+            
+        except Exception as e:
+            print(f"DEBUG - Erro ao buscar receitas: {str(e)}")
+            print(f"DEBUG - Stack trace completo: {e}")
             return []
 
     def _criar_resumo_receita(self, receita: Dict) -> Optional[Dict]:
