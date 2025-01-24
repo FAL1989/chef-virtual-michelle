@@ -9,8 +9,17 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from database_interface import DatabaseInterface
 
 # Configurar logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
+
+# Configurar logging do Supabase
+supabase_logger = logging.getLogger('supabase')
+supabase_logger.setLevel(logging.ERROR)
+
+# Para debug em desenvolvimento
+if os.getenv('ENVIRONMENT') == 'development':
+    logger.setLevel(logging.DEBUG)
+    supabase_logger.setLevel(logging.DEBUG)
 
 def normalize_text(text: str) -> str:
     """Normaliza um texto para busca"""
