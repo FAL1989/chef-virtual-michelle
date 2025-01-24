@@ -174,17 +174,36 @@ class ReceitasDB:
                 'preview_ingredientes': []
             }
 
-    def buscar_receita_por_id(self, receita_id: str) -> Optional[Dict]:
+    def buscar_receita_por_id(self, receita_id: Union[str, int]) -> Optional[Dict]:
         """Busca uma receita específica pelo ID"""
         try:
+            # Garante que o ID seja um inteiro
+            if isinstance(receita_id, str):
+                receita_id = int(receita_id)
+            
+            # Debug para verificar o ID sendo buscado
+            st.write("DEBUG - Buscando receita ID:", receita_id)
+            
             data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
             
             if not data.data:
                 st.warning(f"Receita não encontrada: {receita_id}")
                 return None
             
-            return ReceitaAdapter.to_chat_format(data.data[0])
+            # Debug para verificar os dados retornados
+            st.write("DEBUG - Dados brutos:", data.data[0])
+            
+            # Converte para o formato do chat
+            receita = ReceitaAdapter.to_chat_format(data.data[0])
+            
+            # Debug para verificar a conversão
+            st.write("DEBUG - Dados convertidos:", receita)
+            
+            return receita
                 
+        except ValueError as e:
+            st.error(f"ID inválido: {receita_id}")
+            return None
         except Exception as e:
             st.error(f"Erro ao buscar receita: {str(e)}")
             return None

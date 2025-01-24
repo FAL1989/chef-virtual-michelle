@@ -133,17 +133,24 @@ def render_recipe_preview(recipe: Dict) -> None:
             # Gera uma chave única para o botão usando título se não tiver ID
             button_key = f"btn_{recipe.get('id', recipe.get('titulo', 'unknown'))}"
             if st.button("👉 Ver receita completa", key=button_key):
-                if recipe.get('id') and recipe['id'] != 'erro' and recipe['id'] != 'sem_id':
-                    receita_completa = db.buscar_receita_por_id(recipe['id'])
-                    if receita_completa:
-                        render_recipe_card(receita_completa)
-                    else:
-                        st.error("Não foi possível carregar a receita completa.")
+                # Verifica se o ID existe e é válido
+                receita_id = recipe.get('id')
+                if receita_id and receita_id not in ['erro', 'sem_id']:
+                    try:
+                        # Tenta converter o ID para inteiro
+                        receita_id = int(receita_id)
+                        receita_completa = db.buscar_receita_por_id(receita_id)
+                        if receita_completa:
+                            render_recipe_card(receita_completa)
+                        else:
+                            st.error("Não foi possível carregar a receita completa.")
+                    except ValueError:
+                        st.error("ID da receita inválido.")
                 else:
                     st.warning("Esta receita não está disponível para visualização completa.")
     except Exception as e:
-        logger.error(f"Erro ao renderizar preview da receita: {e}")
-        st.error("Erro ao exibir a receita.")
+        st.error(f"Erro ao exibir a receita: {str(e)}")
+        st.write("DEBUG - Dados da receita:", recipe)
 
 def search_recipes():
     """Interface de busca de receitas"""
