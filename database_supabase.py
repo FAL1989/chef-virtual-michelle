@@ -118,13 +118,22 @@ class ReceitasDB:
             # Limpa e normaliza a query
             query = query.strip().lower()
             
-            # Busca por título e ingredientes usando textSearch
-            data = self.supabase.table('receitas').select('*').or_(
-                f'titulo.ilike.%{query}%,ingredientes.ilike.%{query}%'
+            # Busca por título e ingredientes usando contains
+            data = self.supabase.table('receitas').select('*').filter(
+                'titulo', 'ilike', f'%{query}%'
             ).execute()
             
             st.write("DEBUG - Query:", query)
             st.write("DEBUG - Dados brutos do Supabase:", data.data)
+            
+            if not data.data:
+                # Se não encontrou no título, tenta nos ingredientes
+                data = self.supabase.table('receitas').select('*').filter(
+                    'ingredientes', 'ilike', f'%{query}%'
+                ).execute()
+                
+                st.write("DEBUG - Buscando nos ingredientes...")
+                st.write("DEBUG - Dados brutos do Supabase:", data.data)
             
             if not data.data:
                 st.warning(f"Nenhuma receita encontrada para: {query}")
@@ -139,12 +148,15 @@ class ReceitasDB:
             
             if not receitas:
                 st.warning("Nenhuma receita válida encontrada após conversão")
+            else:
+                st.success(f"Encontradas {len(receitas)} receitas")
             
             return receitas
                 
         except Exception as e:
             st.error(f"Erro ao buscar receitas: {str(e)}")
-            st.error("Stack trace completo:", exc_info=True)
+            import traceback
+            st.error(f"Stack trace completo: {traceback.format_exc()}")
             return []
 
     @staticmethod
