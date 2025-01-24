@@ -119,22 +119,31 @@ def format_recipe(recipe: Dict) -> str:
 
 def render_recipe_preview(recipe: Dict) -> None:
     """Renderiza um preview da receita em formato de card"""
-    with st.container():
-        st.subheader(recipe['titulo'])
-        if recipe.get('descricao'):
-            st.write(recipe['descricao'])
-        
-        if recipe.get('preview_ingredientes'):
-            st.write("🥗 Principais ingredientes:")
-            for ing in recipe['preview_ingredientes']:
-                st.write(f"• {ing}")
-                
-        if st.button("👉 Ver receita completa", key=f"btn_{recipe['id']}"):
-            receita_completa = db.buscar_receita_por_id(recipe['id'])
-            if receita_completa:
-                render_recipe_card(receita_completa)
-            else:
-                st.error("Não foi possível carregar a receita completa.")
+    try:
+        with st.container():
+            st.subheader(recipe['titulo'])
+            if recipe.get('descricao'):
+                st.write(recipe['descricao'])
+            
+            if recipe.get('preview_ingredientes'):
+                st.write("🥗 Principais ingredientes:")
+                for ing in recipe['preview_ingredientes']:
+                    st.write(f"• {ing}")
+                    
+            # Gera uma chave única para o botão usando título se não tiver ID
+            button_key = f"btn_{recipe.get('id', recipe.get('titulo', 'unknown'))}"
+            if st.button("👉 Ver receita completa", key=button_key):
+                if recipe.get('id') and recipe['id'] != 'erro' and recipe['id'] != 'sem_id':
+                    receita_completa = db.buscar_receita_por_id(recipe['id'])
+                    if receita_completa:
+                        render_recipe_card(receita_completa)
+                    else:
+                        st.error("Não foi possível carregar a receita completa.")
+                else:
+                    st.warning("Esta receita não está disponível para visualização completa.")
+    except Exception as e:
+        logger.error(f"Erro ao renderizar preview da receita: {e}")
+        st.error("Erro ao exibir a receita.")
 
 def search_recipes():
     """Interface de busca de receitas"""

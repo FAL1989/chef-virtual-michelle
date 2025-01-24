@@ -153,15 +153,26 @@ class ReceitasDB:
             else:
                 ingredientes = []
 
+            # Garante que o ID seja uma string válida
+            receita_id = receita.get('id')
+            if receita_id is None:
+                logger.warning("Receita sem ID encontrada")
+                receita_id = 'sem_id'
+
             return {
-                'id': receita.get('id', ''),
+                'id': str(receita_id),
                 'titulo': str(receita.get('titulo', '')).strip().upper(),
                 'descricao': str(receita.get('descricao', '')).strip(),
                 'preview_ingredientes': ingredientes
             }
         except Exception as e:
-            st.error(f"Erro ao criar resumo da receita: {str(e)}")
-            return {}
+            logger.error(f"Erro ao criar resumo da receita: {e}")
+            return {
+                'id': 'erro',
+                'titulo': 'ERRO AO CARREGAR RECEITA',
+                'descricao': '',
+                'preview_ingredientes': []
+            }
 
     def buscar_receita_por_id(self, receita_id: str) -> Optional[Dict]:
         """Busca uma receita específica pelo ID"""
