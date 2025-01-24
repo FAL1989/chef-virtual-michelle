@@ -6,6 +6,7 @@ from database import ReceitasDB
 import json
 from datetime import datetime
 import httpx
+from typing import List, Dict, Optional
 
 # Configuração da página
 st.set_page_config(
@@ -15,39 +16,134 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Carrega as variáveis de ambiente (local ou cloud)
-if os.path.exists(".env"):
-    load_dotenv()
+def init_openai_client() -> Optional[OpenAI]:
+    """Inicializa o cliente OpenAI com configuração HTTP personalizada"""
+    try:
+        http_client = httpx.Client(
+            base_url="https://api.openai.com/v1",
+            follow_redirects=True,
+            timeout=60.0
+        )
+        
+        return OpenAI(
+            api_key=st.secrets["OPENAI_API_KEY"],
+            http_client=http_client
+        )
+    except Exception as e:
+        st.error(f"Erro ao inicializar OpenAI: {str(e)}")
+        return None
 
-# Inicializa o cliente OpenAI com configuração HTTP personalizada
-try:
-    http_client = httpx.Client(
-        base_url="https://api.openai.com/v1",
-        follow_redirects=True,
-        timeout=60.0
-    )
+def init_session_state():
+    """Inicializa o estado da sessão"""
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "last_search" not in st.session_state:
+        st.session_state.last_search = None
+
+def format_recipe(recipe: Dict) -> str:
+    """Formata uma receita para exibição"""
+    texto = f"### {recipe['titulo']}\n\n"
     
-    client = OpenAI(
-        api_key=st.secrets["OPENAI_API_KEY"],
-        http_client=http_client
-    )
-except Exception as e:
-    st.error(f"Erro ao inicializar OpenAI: {str(e)}")
-    st.stop()
+    if recipe.get('descricao'):
+        texto += f"{recipe['descricao']}\n\n"
+    
+    if recipe.get('beneficios_funcionais'):
+        texto += "**BENEFÍCIOS FUNCIONAIS:**\n"
+        for beneficio in recipe['beneficios_funcionais']:
+            texto += f"- {beneficio}\n"
+        texto += "\n"
+    
+    if recipe.get('categoria'):
+        texto += f"**CATEGORIA:** {recipe['categoria']}\n\n"
+    
+    texto += "**INFORMAÇÕES GERAIS:**\n"
+    if recipe.get('tempo_preparo'):
+        texto += f"⏱️ Tempo de Preparo: {recipe['tempo_preparo']}\n"
+    if recipe.get('porcoes'):
+        texto += f"🍽️ Porções: {recipe['porcoes']}\n"
+    if recipe.get('dificuldade'):
+        texto += f"📊 Dificuldade: {recipe['dificuldade']}\n"
+    texto += "\n"
+    
+    if recipe.get('informacoes_nutricionais'):
+        texto += "**INFORMAÇÕES NUTRICIONAIS (por porção):**\n"
+        info_nutri = recipe['informacoes_nutricionais']
+        if info_nutri.get('calorias'):
+            texto += f"🔸 Calorias: {info_nutri['calorias']}\n"
+        if info_nutri.get('proteinas'):
+            texto += f"🔸 Proteínas: {info_nutri['proteinas']}\n"
+        if info_nutri.get('carboidratos'):
+            texto += f"🔸 Carboidratos: {info_nutri['carboidratos']}\n"
+        if info_nutri.get('gorduras'):
+            texto += f"🔸 Gorduras: {info_nutri['gorduras']}\n"
+        if info_nutri.get('fibras'):
+            texto += f"🔸 Fibras: {info_nutri['fibras']}\n"
+        texto += "\n"
+    
+    if recipe.get('utensilios'):
+        texto += f"**UTENSÍLIOS NECESSÁRIOS:**\n{recipe['utensilios']}\n\n"
+    
+    texto += "**INGREDIENTES:**\n"
+    ingredientes = recipe['ingredientes']
+    if isinstance(ingredientes, list):
+        for ingrediente in ingredientes:
+            texto += f"- {ingrediente}\n"
+    else:
+        texto += ingredientes
+    texto += "\n"
+    
+    texto += "**MODO DE PREPARO:**\n"
+    modo_preparo = recipe['modo_preparo']
+    if isinstance(modo_preparo, list):
+        for i, passo in enumerate(modo_preparo, 1):
+            texto += f"{i}. {passo}\n"
+    else:
+        texto += modo_preparo
+    texto += "\n"
+    
+    if recipe.get('dicas'):
+        texto += "**DICAS DA CHEF:**\n"
+        dicas = recipe['dicas']
+        if isinstance(dicas, list):
+            for dica in dicas:
+                texto += f"💡 {dica}\n"
+        else:
+            texto += f"💡 {dicas}\n"
+        texto += "\n"
+    
+    if recipe.get('harmonizacao'):
+        texto += f"**HARMONIZAÇÃO E CONSUMO:**\n{recipe['harmonizacao']}\n\n"
+    
+    texto += "---\n"
+    return texto
 
-db = ReceitasDB()
+def render_sidebar(db: ReceitasDB):
+    """Renderiza a barra lateral"""
+    with st.sidebar:
+        st.header("Filtros")
+        busca = st.text_input("Buscar receitas existentes:")
+        if busca:
+            receitas = db.buscar_receitas(busca)
+            if receitas:
+                st.success(f"Encontradas {len(receitas)} receitas!")
+                for receita in receitas:
+                    with st.expander(receita['titulo']):
+                        st.markdown(format_recipe(receita))
+        
+        st.markdown("---")
+        st.header("Exportar Conversa")
+        export_history()
+        
+        if st.button("Limpar Histórico"):
+            st.session_state.messages = []
+            st.success("Histórico limpo com sucesso!")
 
-# Inicializa o histórico de mensagens no session_state se não existir
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-def exportar_historico():
+def export_history():
     """Exporta o histórico da conversa para um arquivo"""
     if not st.session_state.messages:
         st.warning("Não há histórico para exportar!")
         return
     
-    # Formata o histórico para um texto legível
     texto = "# Histórico de Receitas - Chef Virtual Michelle\n\n"
     texto += f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n"
     
@@ -58,7 +154,6 @@ def exportar_historico():
             texto += f"## 👩‍🍳 Resposta da Chef Michelle:\n{msg['content']}\n\n"
             texto += "---\n\n"
     
-    # Cria o arquivo para download
     st.download_button(
         label="📥 Exportar Histórico",
         data=texto,
@@ -66,155 +161,156 @@ def exportar_historico():
         mime="text/markdown"
     )
 
-def buscar_receitas_existentes(pergunta: str) -> list:
-    """Busca receitas no banco de dados"""
-    # Normaliza a pergunta
-    termos_busca = pergunta.lower()
-    
-    # Remove palavras comuns que podem atrapalhar a busca
-    palavras_para_remover = ['receita', 'de', 'do', 'da', 'dos', 'das', 'com', 'e', 
-                           'preciso', 'quero', 'como', 'fazer', 'tem', 'olá', 'oi']
-    
-    for palavra in palavras_para_remover:
-        termos_busca = termos_busca.replace(f' {palavra} ', ' ')
-    
-    # Limpa espaços extras
-    termos_busca = ' '.join(termos_busca.split())
-    
-    print(f"Buscando por: {termos_busca}")  # Debug
-    return db.buscar_receitas(termos_busca)
-
-def gerar_nova_receita(pergunta: str) -> str:
-    """Gera uma nova receita usando a IA"""
-    try:
-        # Obtém o contexto das receitas existentes
-        contexto = db.get_todas_receitas()
-        
-        # Prepara as mensagens incluindo o histórico da conversa
-        messages = [
-            {
-                "role": "system",
-                "content": f"""Você é a Michelle Mística uma chef profissional especializada em criar receitas detalhadas e práticas.
-                Use as receitas a seguir como referência para entender o estilo e preferências da Chef Michelle:
-                
-                {contexto}
-                
-                Crie uma NOVA receita seguindo o mesmo estilo, mas não repita exatamente as receitas existentes.
-                Use o seguinte formato:
-
-                INGREDIENTES:
-                - (lista com quantidades precisas)
-
-                MODO DE PREPARO:
-                1. (passos numerados e detalhados)
-
-                TEMPO DE PREPARO: (tempo total)
-                PORÇÕES: (quantidade)
-                DIFICULDADE: (fácil/médio/difícil)
-
-                DICAS DO CHEF: (2-3 dicas importantes)
-
-                Mantenha um tom amigável e profissional, e lembre-se das conversas anteriores para dar sugestões mais personalizadas."""
-            }
-        ]
-        
-        # Adiciona o histórico da conversa
-        for msg in st.session_state.messages[-10:]:  # Últimas 10 mensagens para manter o contexto relevante
-            messages.append({
-                "role": msg["role"],
-                "content": msg["content"]
-            })
-        
-        # Adiciona a pergunta atual
-        messages.append({
-            "role": "user",
-            "content": pergunta
-        })
-        
-        response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",
-            messages=messages,
-            temperature=0.7,
-            max_tokens=1000,
-            top_p=0.9,
-            frequency_penalty=0.2,
-            presence_penalty=0.2
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"Erro ao gerar a receita: {e}"
-
-def formatar_receita(receita: dict) -> str:
-    """Formata uma receita do banco de dados para exibição"""
-    texto = f"RECEITA: {receita['titulo']}\n\n"
-    
-    if receita.get('categoria'):
-        texto += f"CATEGORIA: {receita['categoria']}\n\n"
-    
-    texto += "UTENSÍLIOS:\n"
-    texto += f"{receita['utensilios']}\n\n"
-    
-    texto += "INGREDIENTES:\n"
-    texto += f"{receita['ingredientes']}\n\n"
-    
-    texto += "MODO DE PREPARO:\n"
-    texto += f"{receita['modo_preparo']}\n"
-    
-    return texto
-
-def main():
-    st.title("Chef Virtual - Receitas da Michelle")
-    st.write("Bem-vindo! Pergunte por uma receita ou informe os ingredientes que você tem disponível.")
-
-    # Barra lateral para filtros e exportação
-    with st.sidebar:
-        st.header("Filtros")
-        busca = st.text_input("Buscar receitas existentes:")
-        if busca:
-            receitas = db.buscar_receitas(busca)
-            if receitas:
-                st.success(f"Encontradas {len(receitas)} receitas!")
-                for receita in receitas:
-                    with st.expander(receita['titulo']):
-                        st.write("**CATEGORIA:**", receita['categoria'])
-                        st.write("**UTENSÍLIOS:**")
-                        st.write(receita['utensilios'])
-                        st.write("**INGREDIENTES:**")
-                        st.write(receita['ingredientes'])
-                        st.write("**MODO DE PREPARO:**")
-                        st.write(receita['modo_preparo'])
-        
-        st.markdown("---")
-        st.header("Exportar Conversa")
-        exportar_historico()
-
-    # Exibe o histórico de mensagens
+def render_message_history():
+    """Renderiza o histórico de mensagens"""
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Área principal
+def process_user_input(client: OpenAI, db: ReceitasDB):
+    """Processa a entrada do usuário"""
     if prompt := st.chat_input("Digite aqui sua pergunta ou ingredientes:"):
-        # Adiciona a mensagem do usuário ao histórico
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Primeiro, tenta encontrar receitas existentes
-        receitas_encontradas = buscar_receitas_existentes(prompt)
-        
         with st.chat_message("assistant"):
-            if receitas_encontradas:
-                resposta = "Encontrei estas receitas no nosso banco de dados:\n\n"
-                for receita in receitas_encontradas:
-                    resposta += formatar_receita(receita) + "\n---\n\n"
-            else:
-                st.info("Não encontrei receitas existentes com esses ingredientes. Vou criar uma nova receita para você!")
-                resposta = gerar_nova_receita(prompt)
-            
-            st.markdown(resposta)
-            # Adiciona a resposta do assistente ao histórico
-            st.session_state.messages.append({"role": "assistant", "content": resposta})
+            with st.spinner("Processando sua solicitação..."):
+                receitas_encontradas = db.buscar_receitas(prompt)
+                
+                if receitas_encontradas:
+                    resposta = "Encontrei estas receitas no nosso banco de dados:\n\n"
+                    for receita in receitas_encontradas:
+                        resposta += format_recipe(receita) + "\n---\n\n"
+                else:
+                    st.info("Não encontrei receitas existentes com esses ingredientes. Vou criar uma nova receita para você!")
+                    resposta = generate_new_recipe(client, prompt, db)
+                
+                st.markdown(resposta)
+                st.session_state.messages.append({"role": "assistant", "content": resposta})
+
+def generate_new_recipe(client: OpenAI, prompt: str, db: ReceitasDB) -> str:
+    """Gera uma nova receita usando a API da OpenAI"""
+    try:
+        messages = prepare_ai_context(prompt)
+        response = call_openai_api(client, messages)
+        
+        # Tenta salvar a receita no banco de dados
+        try:
+            receita_dict = json.loads(response)
+            if db.adicionar_receita(receita_dict):
+                st.success("Receita salva no banco de dados!")
+        except json.JSONDecodeError:
+            st.warning("Não foi possível salvar a receita no banco de dados.")
+        
+        return response
+    except Exception as e:
+        return f"Desculpe, ocorreu um erro ao gerar a receita: {str(e)}"
+
+def prepare_ai_context(prompt: str) -> List[Dict]:
+    """Prepara o contexto para a chamada da IA"""
+    context = """Você é a Chef Michelle Mística, uma renomada chef especializada em gastronomia funcional com formação em nutrição funcional e fitoterapia. Sua abordagem única combina:
+
+    FILOSOFIA CULINÁRIA:
+    - Criação de receitas que são simultaneamente nutritivas E deliciosas
+    - Uso inteligente de ingredientes funcionais sem comprometer o sabor
+    - Adaptação de receitas tradicionais para versões mais saudáveis
+    - Equilíbrio entre prazer gastronômico e benefícios nutricionais
+
+    ESPECIALIDADES:
+    - Técnicas avançadas de gastronomia funcional
+    - Conhecimento profundo de propriedades nutricionais dos alimentos
+    - Combinações sinérgicas de ingredientes para potencializar benefícios
+    - Adaptações para diferentes necessidades (sem ser restritiva)
+
+    DIFERENCIAIS:
+    - Receitas que agradam tanto amantes da comida saudável quanto céticos
+    - Uso criativo de ingredientes funcionais em pratos tradicionais
+    - Explicações sobre os benefícios nutricionais de cada ingrediente
+    - Dicas de substituições e adaptações para diferentes preferências
+
+    Ao criar uma receita, sempre inclua:
+    1. Título criativo que destaque o aspecto funcional
+    2. Lista de ingredientes com quantidades precisas
+    3. Benefícios funcionais dos ingredientes principais
+    4. Modo de preparo detalhado
+    5. Tempo de preparo e rendimento
+    6. Dicas de substituições e variações
+    7. Informações nutricionais relevantes
+    8. Sugestões de harmonização e consumo
+
+    Formate a resposta em JSON com os campos:
+    {
+        "titulo": "Nome da receita",
+        "descricao": "Breve descrição dos benefícios e características",
+        "beneficios_funcionais": ["Lista de benefícios principais"],
+        "ingredientes": ["Lista com quantidades"],
+        "modo_preparo": ["Passos detalhados"],
+        "tempo_preparo": "Tempo total",
+        "porcoes": "Número de porções",
+        "dificuldade": "Nível de dificuldade",
+        "informacoes_nutricionais": {
+            "calorias": "por porção",
+            "proteinas": "em gramas",
+            "carboidratos": "em gramas",
+            "gorduras": "em gramas",
+            "fibras": "em gramas"
+        },
+        "dicas": ["Dicas de preparo e substituições"],
+        "harmonizacao": "Sugestões de consumo e acompanhamentos"
+    }
+    """
+    
+    return [
+        {"role": "system", "content": context},
+        {"role": "user", "content": prompt}
+    ]
+
+def call_openai_api(client: OpenAI, messages: List[Dict]) -> str:
+    """Faz a chamada à API da OpenAI"""
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini-2024-07-18",
+            messages=messages,
+            temperature=0.85,
+            max_tokens=2000,
+            top_p=0.95,
+            frequency_penalty=0.3,
+            presence_penalty=0.3
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        raise Exception(f"Erro na chamada da API: {str(e)}")
+
+def main():
+    """Função principal do aplicativo"""
+    # Carrega as variáveis de ambiente
+    if os.path.exists(".env"):
+        load_dotenv()
+    
+    # Inicializa o cliente OpenAI
+    client = init_openai_client()
+    if not client:
+        st.stop()
+    
+    # Inicializa o banco de dados
+    db = ReceitasDB()
+    
+    # Inicializa o estado da sessão
+    init_session_state()
+    
+    # Renderiza o título
+    st.title("Chef Virtual - Receitas da Michelle")
+    st.write("Bem-vindo! Pergunte por uma receita ou informe os ingredientes que você tem disponível.")
+    
+    # Renderiza a barra lateral
+    render_sidebar(db)
+    
+    # Renderiza o histórico de mensagens
+    render_message_history()
+    
+    # Processa a entrada do usuário
+    process_user_input(client, db)
 
 if __name__ == "__main__":
     main()
