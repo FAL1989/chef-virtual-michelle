@@ -355,13 +355,52 @@ def generate_new_recipe(client: OpenAI, prompt: str, db: ReceitasDB) -> str:
         
         # Tenta salvar a receita no banco de dados
         try:
+            # Converte a resposta para dict para salvar no banco
             receita_dict = json.loads(response)
             if db.adicionar_receita(receita_dict):
                 st.success("Receita salva no banco de dados!")
+            
+            # Formata a resposta para o usuário em linguagem natural
+            resposta = f"Criei uma receita especial para você!\n\n"
+            resposta += f"O {receita_dict['titulo'].lower()} é uma ótima opção! "
+            if receita_dict.get('descricao'):
+                resposta += f"{receita_dict['descricao']}\n\n"
+            
+            resposta += "Você vai precisar dos seguintes ingredientes:\n"
+            for ing in receita_dict.get('ingredientes', []):
+                resposta += f"• {ing}\n"
+            
+            if receita_dict.get('modo_preparo'):
+                resposta += "\nModo de preparo:\n"
+                for i, step in enumerate(receita_dict['modo_preparo'], 1):
+                    resposta += f"{i}. {step}\n"
+            
+            if receita_dict.get('tempo_preparo'):
+                resposta += f"\n⏰ Tempo de preparo: {receita_dict['tempo_preparo']}\n"
+            if receita_dict.get('porcoes'):
+                resposta += f"🍽️ Rende: {receita_dict['porcoes']}\n"
+            if receita_dict.get('dificuldade'):
+                resposta += f"📊 Dificuldade: {receita_dict['dificuldade']}\n"
+            
+            if receita_dict.get('dicas'):
+                resposta += "\nDicas importantes:\n"
+                for dica in receita_dict['dicas']:
+                    resposta += f"• {dica}\n"
+            
+            if receita_dict.get('harmonizacao'):
+                resposta += f"\nDica de harmonização: {receita_dict['harmonizacao']}\n"
+            
+            if receita_dict.get('beneficios_funcionais'):
+                resposta += "\nBenefícios funcionais:\n"
+                for b in receita_dict['beneficios_funcionais']:
+                    resposta += f"• {b}\n"
+            
+            return resposta
+            
         except json.JSONDecodeError:
-            st.warning("Não foi possível salvar a receita no banco de dados.")
-        
-        return response
+            st.error("Não foi possível salvar a receita no banco de dados.")
+            return response
+            
     except Exception as e:
         return f"Desculpe, ocorreu um erro ao gerar a receita: {str(e)}"
 

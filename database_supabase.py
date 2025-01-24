@@ -207,39 +207,22 @@ class ReceitasDB:
             
             if not query:
                 data = self.supabase.table('receitas').select('*').execute()
-                st.write("DEBUG - Dados retornados (sem query):", data.data)
                 return [ReceitaAdapter.to_chat_format(r) for r in data.data]
             
             # Limpa e normaliza a query
             query = clean_search_query(query)
             st.write("DEBUG - Query limpa e normalizada:", query)
             
-            # Busca usando filter com ilike no título
-            data = self.supabase.table('receitas').select('*').filter('titulo', 'ilike', f'%{query}%').execute()
+            # Busca por título usando texto simples
+            data = self.supabase.table('receitas').select('*').textcontains('titulo', query).execute()
             st.write("DEBUG - Dados retornados do Supabase (busca por título):", data.data)
             
             # Se não encontrou no título, tenta nos ingredientes
             if not data.data:
-                data = self.supabase.table('receitas').select('*').filter('ingredientes', 'ilike', f'%{query}%').execute()
+                data = self.supabase.table('receitas').select('*').textcontains('ingredientes', query).execute()
                 st.write("DEBUG - Dados retornados do Supabase (busca por ingredientes):", data.data)
             
-            if not data.data:
-                st.info("Nenhuma receita encontrada.")
-                return []
-            
-            # Cria resumo das receitas encontradas e filtra os inválidos
-            receitas = []
-            for receita in data.data:
-                st.write("DEBUG - Processando receita:", receita.get('id'))
-                resumo = self._criar_resumo_receita(receita)
-                if resumo is not None:  # Só adiciona se o resumo for válido
-                    st.write("DEBUG - Resumo válido criado:", resumo)
-                    receitas.append(resumo)
-                else:
-                    st.warning(f"Resumo inválido para receita {receita.get('id')}")
-            
-            st.write(f"DEBUG - Encontradas {len(receitas)} receitas válidas")
-            return receitas
+            return [ReceitaAdapter.to_chat_format(r) for r in data.data]
                 
         except Exception as e:
             st.error(f"Erro ao buscar receitas: {str(e)}")
