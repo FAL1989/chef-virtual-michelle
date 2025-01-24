@@ -18,14 +18,15 @@ create table receitas (
     porcoes text,
     dificuldade text,
     harmonizacao text,
-    informacoes_nutricionais jsonb default '{}'::jsonb,
-    beneficios_funcionais jsonb default '[]'::jsonb,
-    dicas jsonb default '[]'::jsonb,
+    informacoes_nutricionais text default '{}',
+    beneficios_funcionais text default '[]',
+    dicas text default '[]',
     created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
 -- Criar índices para melhorar a performance das buscas
 create index if not exists idx_receitas_titulo on receitas using gin (to_tsvector('portuguese', titulo));
+create index if not exists idx_receitas_ingredientes on receitas using gin (to_tsvector('portuguese', ingredientes));
 create index if not exists idx_receitas_descricao on receitas using gin (to_tsvector('portuguese', descricao));
 """
 

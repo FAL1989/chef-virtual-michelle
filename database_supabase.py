@@ -213,22 +213,8 @@ class ReceitasDB(DatabaseInterface):
             # Busca usando ilike para case-insensitive
             data = (self.supabase.table('receitas')
                    .select('*')
-                   .ilike('titulo', f'%{query}%')
+                   .or_(f'titulo.ilike.%{query}%,ingredientes.ilike.%{query}%,descricao.ilike.%{query}%')
                    .execute())
-            
-            # Se não encontrou no título, tenta nos ingredientes
-            if not data.data:
-                data = (self.supabase.table('receitas')
-                       .select('*')
-                       .ilike('ingredientes', f'%{query}%')
-                       .execute())
-            
-            # Se ainda não encontrou, tenta na descrição
-            if not data.data:
-                data = (self.supabase.table('receitas')
-                       .select('*')
-                       .ilike('descricao', f'%{query}%')
-                       .execute())
             
             logger.info(f"Encontradas {len(data.data)} receitas")
             
