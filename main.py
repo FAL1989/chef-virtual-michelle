@@ -133,6 +133,8 @@ def render_recipe_preview(recipe: Dict) -> None:
             receita_completa = db.buscar_receita_por_id(recipe['id'])
             if receita_completa:
                 render_recipe_card(receita_completa)
+            else:
+                st.error("Não foi possível carregar a receita completa.")
 
 def search_recipes():
     """Interface de busca de receitas"""
@@ -141,10 +143,12 @@ def search_recipes():
     if query:
         receitas = db.buscar_receitas_cached(query)
         if receitas:
-            st.write(f"Encontradas {len(receitas)} receitas:")
+            st.success(f"Encontradas {len(receitas)} receitas:")
             for receita in receitas:
                 render_recipe_preview(receita)
                 st.divider()
+        else:
+            st.info("Nenhuma receita encontrada. Que tal me perguntar diretamente? Posso criar uma receita especialmente para você!")
 
 def render_recipe_card(recipe: Dict) -> None:
     """Renderiza uma receita completa em formato de card"""

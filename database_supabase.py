@@ -126,7 +126,6 @@ class ReceitasDB:
                 data = self.supabase.table('receitas').select('titulo,descricao,ingredientes').filter('ingredientes', 'ilike', f'%{query}%').execute()
             
             if not data.data:
-                st.warning(f"Nenhuma receita encontrada para: {query}")
                 return []
             
             # Cria resumo das receitas encontradas
@@ -136,15 +135,10 @@ class ReceitasDB:
                 if resumo:  # Só adiciona se a conversão foi bem sucedida
                     receitas.append(resumo)
             
-            if not receitas:
-                st.warning("Nenhuma receita válida encontrada")
-            else:
-                st.success(f"Encontradas {len(receitas)} receitas")
-            
             return receitas
                 
         except Exception as e:
-            st.error(f"Erro ao buscar receitas: {str(e)}")
+            logger.error(f"Erro ao buscar receitas: {e}")
             return []
 
     def _criar_resumo_receita(self, receita: Dict) -> Dict:
@@ -200,9 +194,6 @@ class ReceitasDB:
         """Exporta todas as receitas do banco de dados"""
         try:
             data = self.supabase.table('receitas').select('*').execute()
-            st.write("DEBUG - Dados brutos do Supabase:", data.data)
-            
-            # Converte cada receita para o formato do chat
             return [ReceitaAdapter.to_chat_format(receita) for receita in data.data]
         except Exception as e:
             logger.error(f"Erro ao exportar receitas: {e}")
