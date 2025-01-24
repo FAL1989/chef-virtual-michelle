@@ -136,6 +136,9 @@ def render_recipe_preview(recipe: Dict) -> None:
             button_key = f"btn_{recipe.get('id', recipe.get('titulo', 'unknown'))}"
             st.write("DEBUG - Chave do botão:", button_key)
             
+            # Cria uma nova instância do ReceitasDB fora do if do botão
+            db = ReceitasDB()
+            
             if st.button("👉 Ver receita completa", key=button_key):
                 st.write("DEBUG - Botão clicado")
                 # Verifica se o ID existe e é válido
@@ -144,9 +147,7 @@ def render_recipe_preview(recipe: Dict) -> None:
                 
                 if receita_id and receita_id not in ['erro', 'sem_id']:
                     try:
-                        # Cria uma nova instância do ReceitasDB
-                        db = ReceitasDB()
-                        # Usa o ID diretamente como UUID
+                        # Usa a instância já criada
                         receita_completa = db.buscar_receita_por_id(receita_id)
                         st.write("DEBUG - Receita completa retornada:", receita_completa is not None)
                         
