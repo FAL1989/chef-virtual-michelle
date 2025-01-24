@@ -91,75 +91,18 @@ class ReceitasDB:
 
     def _converter_formato_db(self, receita_db: Dict) -> Optional[Dict]:
         """Converte o formato do banco para o formato da aplicação"""
-        st.write("DEBUG - Convertendo receita:", receita_db)
-        
-        if not isinstance(receita_db, dict):
-            st.error(f"Receita inválida, tipo recebido: {type(receita_db)}")
-            return None
-            
-        try:
-            # Verifica se o título existe
-            if 'titulo' not in receita_db:
-                st.error("Receita sem título")
-                return None
-                
-            # Converte informações nutricionais de JSONB para dict
-            info_nutri = receita_db.get('informacoes_nutricionais', {})
-            if isinstance(info_nutri, str):
-                info_nutri = json.loads(info_nutri)
-            
-            # Converte benefícios funcionais de JSONB para list
-            beneficios = receita_db.get('beneficios_funcionais', [])
-            if isinstance(beneficios, str):
-                beneficios = json.loads(beneficios)
-            
-            # Converte dicas de JSONB para list
-            dicas = receita_db.get('dicas', [])
-            if isinstance(dicas, str):
-                dicas = json.loads(dicas)
-            
-            receita_convertida = {
-                'titulo': str(receita_db.get('titulo', '')),
-                'descricao': str(receita_db.get('descricao', '')),
-                'utensilios': str(receita_db.get('utensilios', '')),
-                'ingredientes': str(receita_db.get('ingredientes', '')).split('\n') if receita_db.get('ingredientes') else [],
-                'modo_preparo': str(receita_db.get('modo_preparo', '')).split('\n') if receita_db.get('modo_preparo') else [],
-                'tempo_preparo': str(receita_db.get('tempo_preparo', '')),
-                'porcoes': str(receita_db.get('porcoes', '')),
-                'dificuldade': str(receita_db.get('dificuldade', '')),
-                'harmonizacao': str(receita_db.get('harmonizacao', '')),
-                'informacoes_nutricionais': info_nutri,
-                'beneficios_funcionais': beneficios,
-                'dicas': dicas
-            }
-            
-            st.write("DEBUG - Receita convertida:", receita_convertida)
-            return receita_convertida
-        except Exception as e:
-            st.error(f"Erro ao converter receita: {str(e)}")
-            return None
+        return ReceitaAdapter.to_chat_format(receita_db)
 
     def adicionar_receita(self, receita: Dict) -> bool:
         """Adiciona uma nova receita ao banco de dados"""
         try:
-            # Garante que os campos numéricos sejam 0 quando vazios
-            info_nutri = receita.get('informacoes_nutricionais', {})
-            for campo in ['calorias', 'proteinas', 'carboidratos', 'gorduras', 'fibras']:
-                valor = info_nutri.get(campo, '')
-                info_nutri[campo] = 0 if valor == '' else float(valor)
-            receita['informacoes_nutricionais'] = info_nutri
-
-            # Garante que arrays sejam listas vazias quando nulos
-            for campo in ['ingredientes', 'modo_preparo', 'beneficios_funcionais', 'dicas']:
-                if not receita.get(campo):
-                    receita[campo] = []
-
-            # Garante que strings sejam vazias quando nulas
-            for campo in ['titulo', 'descricao', 'categoria', 'tempo_preparo', 'porcoes', 'dificuldade', 'utensilios', 'harmonizacao']:
-                if not receita.get(campo):
-                    receita[campo] = ''
-
-            data = self.supabase.table('receitas').insert(receita).execute()
+            # Converte para o formato do banco
+            receita_db = ReceitaAdapter.to_db_format(receita)
+            if not receita_db:
+                return False
+            
+            # Insere no banco
+            data = self.supabase.table('receitas').insert(receita_db).execute()
             return True
         except Exception as e:
             logger.error(f"Erro ao adicionar receita: {e}")
@@ -179,16 +122,8 @@ class ReceitasDB:
                     st.warning("Nenhum dado retornado do Supabase")
                     return []
                 
-                # Converte cada receita para o formato esperado
-                receitas = []
-                for receita in data.data:
-                    receita_convertida = self._converter_formato_db(receita)
-                    if receita_convertida:
-                        receitas.append(receita_convertida)
-                
-                st.write("DEBUG - Dados convertidos:", receitas)
-                
-                return receitas
+                # Converte cada receita para o formato do chat
+                return [ReceitaAdapter.to_chat_format(receita) for receita in data.data]
             else:
                 # Retorna todas as receitas
                 data = self.supabase.table('receitas').select('*').execute()
@@ -196,7 +131,7 @@ class ReceitasDB:
                 if not data.data:
                     return []
                     
-                return [self._converter_formato_db(receita) for receita in data.data if self._converter_formato_db(receita)]
+                return [ReceitaAdapter.to_chat_format(receita) for receita in data.data]
                 
         except Exception as e:
             st.error(f"Erro ao buscar receitas: {str(e)}")
@@ -220,23 +155,8 @@ class ReceitasDB:
             data = self.supabase.table('receitas').select('*').execute()
             st.write("DEBUG - Dados brutos do Supabase:", data.data)
             
-            # Converte cada receita para o formato esperado
-            receitas = []
-            for receita in data.data:
-                # Se a receita vier como string, tenta converter para dict
-                if isinstance(receita, str):
-                    try:
-                        receita = json.loads(receita)
-                    except json.JSONDecodeError:
-                        st.error(f"Erro ao decodificar receita: {receita}")
-                        continue
-                
-                receita_convertida = self._converter_formato_db(receita)
-                if receita_convertida:
-                    receitas.append(receita_convertida)
-            
-            st.write("DEBUG - Dados convertidos:", receitas)
-            return receitas
+            # Converte cada receita para o formato do chat
+            return [ReceitaAdapter.to_chat_format(receita) for receita in data.data]
         except Exception as e:
             logger.error(f"Erro ao exportar receitas: {e}")
             return []
@@ -251,4 +171,81 @@ class ReceitasDB:
             return db.exportar_receitas()
         except Exception as e:
             logger.error(f"Erro ao exportar receitas: {e}")
-            return [] 
+            return []
+
+class ReceitaAdapter:
+    """Adaptador para converter entre o formato rico do chat e o formato simples do banco"""
+    
+    @staticmethod
+    def to_db_format(receita_chat: Dict) -> Dict:
+        """Converte do formato rico do chat para o formato do banco"""
+        try:
+            # Converte arrays para strings com quebras de linha
+            ingredientes = '\n'.join(receita_chat.get('ingredientes', [])) if isinstance(receita_chat.get('ingredientes'), list) else ''
+            modo_preparo = '\n'.join(receita_chat.get('modo_preparo', [])) if isinstance(receita_chat.get('modo_preparo'), list) else ''
+            
+            # Mantém os campos JSONB como estão
+            info_nutri = receita_chat.get('informacoes_nutricionais', {
+                'calorias': 0,
+                'proteinas': 0,
+                'carboidratos': 0,
+                'gorduras': 0,
+                'fibras': 0
+            })
+            
+            return {
+                'titulo': str(receita_chat.get('titulo', '')),
+                'descricao': str(receita_chat.get('descricao', '')),
+                'ingredientes': ingredientes,
+                'modo_preparo': modo_preparo,
+                'tempo_preparo': str(receita_chat.get('tempo_preparo', '')),
+                'porcoes': str(receita_chat.get('porcoes', '')),
+                'dificuldade': str(receita_chat.get('dificuldade', '')),
+                'utensilios': str(receita_chat.get('utensilios', '')),
+                'harmonizacao': str(receita_chat.get('harmonizacao', '')),
+                'informacoes_nutricionais': info_nutri,
+                'beneficios_funcionais': receita_chat.get('beneficios_funcionais', []),
+                'dicas': receita_chat.get('dicas', [])
+            }
+        except Exception as e:
+            st.error(f"Erro ao converter para formato DB: {str(e)}")
+            return {}
+
+    @staticmethod
+    def to_chat_format(receita_db: Dict) -> Dict:
+        """Converte do formato do banco para o formato rico do chat"""
+        try:
+            # Converte strings com quebras de linha para arrays
+            ingredientes = receita_db.get('ingredientes', '').split('\n') if receita_db.get('ingredientes') else []
+            modo_preparo = receita_db.get('modo_preparo', '').split('\n') if receita_db.get('modo_preparo') else []
+            
+            # Garante que campos JSONB sejam dicts/lists
+            info_nutri = receita_db.get('informacoes_nutricionais', {})
+            if isinstance(info_nutri, str):
+                info_nutri = json.loads(info_nutri)
+                
+            beneficios = receita_db.get('beneficios_funcionais', [])
+            if isinstance(beneficios, str):
+                beneficios = json.loads(beneficios)
+                
+            dicas = receita_db.get('dicas', [])
+            if isinstance(dicas, str):
+                dicas = json.loads(dicas)
+            
+            return {
+                'titulo': str(receita_db.get('titulo', '')),
+                'descricao': str(receita_db.get('descricao', '')),
+                'ingredientes': [ing.strip() for ing in ingredientes if ing.strip()],
+                'modo_preparo': [step.strip() for step in modo_preparo if step.strip()],
+                'tempo_preparo': str(receita_db.get('tempo_preparo', '')),
+                'porcoes': str(receita_db.get('porcoes', '')),
+                'dificuldade': str(receita_db.get('dificuldade', '')),
+                'utensilios': str(receita_db.get('utensilios', '')),
+                'harmonizacao': str(receita_db.get('harmonizacao', '')),
+                'informacoes_nutricionais': info_nutri,
+                'beneficios_funcionais': beneficios,
+                'dicas': dicas
+            }
+        except Exception as e:
+            st.error(f"Erro ao converter para formato chat: {str(e)}")
+            return {} 
