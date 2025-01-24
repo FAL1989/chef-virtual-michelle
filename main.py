@@ -2,7 +2,7 @@ import streamlit as st
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-from database import ReceitasDB
+from database_supabase import ReceitasDB
 import json
 from datetime import datetime
 import httpx
@@ -117,18 +117,52 @@ def format_recipe(recipe: Dict) -> str:
     texto += "---\n"
     return texto
 
+def render_recipe_card(recipe: Dict) -> None:
+    """Renderiza um card de receita"""
+    with st.container():
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.subheader(recipe['titulo'])
+            if recipe.get('descricao'):
+                st.write(recipe['descricao'])
+            
+            # Métricas principais
+            metrics_cols = st.columns(3)
+            with metrics_cols[0]:
+                st.metric("⏱️ Tempo", recipe.get('tempo_preparo', 'N/A'))
+            with metrics_cols[1]:
+                st.metric("🍽️ Porções", recipe.get('porcoes', 'N/A'))
+            with metrics_cols[2]:
+                st.metric("📊 Dificuldade", recipe.get('dificuldade', 'N/A'))
+        
+        with col2:
+            # Informações nutricionais em formato compacto
+            if recipe.get('informacoes_nutricionais'):
+                st.write("📊 Info. Nutricional")
+                info = recipe['informacoes_nutricionais']
+                if info.get('calorias'):
+                    st.write(f"🔸 Cal: {info['calorias']}")
+                if info.get('proteinas'):
+                    st.write(f"🔸 Prot: {info['proteinas']}")
+        
+        # Expandir para ver mais detalhes
+        with st.expander("Ver receita completa"):
+            st.markdown(format_recipe(recipe))
+    st.divider()
+
 def render_sidebar(db: ReceitasDB):
     """Renderiza a barra lateral"""
     with st.sidebar:
         st.header("Filtros")
         busca = st.text_input("Buscar receitas existentes:")
         if busca:
-            receitas = db.buscar_receitas(busca)
+            receitas = db.buscar_receitas_cached(busca)  # Usando versão com cache
             if receitas:
                 st.success(f"Encontradas {len(receitas)} receitas!")
                 for receita in receitas:
-                    with st.expander(receita['titulo']):
-                        st.markdown(format_recipe(receita))
+                    render_recipe_card(receita)
+            else:
+                st.info("Nenhuma receita encontrada.")
         
         st.markdown("---")
         st.header("Exportar Conversa")
