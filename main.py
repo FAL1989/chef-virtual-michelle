@@ -414,6 +414,14 @@ def gerar_receita(client: OpenAI, prompt: str) -> Optional[Dict]:
         response = call_openai_api(client, messages)
         
         try:
+            # Limpa a resposta da API
+            response = response.strip()
+            if response.startswith("```json"):
+                response = response[7:]  # Remove ```json
+            if response.endswith("```"):
+                response = response[:-3]  # Remove ```
+            response = response.strip()
+            
             # Converte a resposta para dict
             receita_dict = json.loads(response)
             
@@ -519,29 +527,14 @@ Basta me dizer o que você precisa! 🌟"""
                 "content": "Não encontrei nenhuma receita com esses ingredientes, mas posso criar uma nova receita para você! 👩‍🍳 Aguarde um momento..."
             })
             
-            # Gera uma nova receita
-            nova_receita = gerar_receita(client, prompt)
+            # Faz a chamada à API
+            response = call_openai_api(client, prepare_ai_context(prompt))
             
-            if nova_receita:
-                # Tenta salvar a receita
-                if db.adicionar_receita(nova_receita):
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": "✨ Criei e salvei uma nova receita para você!"
-                    })
-                    # Renderiza a nova receita
-                    render_recipe_preview(nova_receita)
-                else:
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": "❌ Não consegui salvar a receita no banco de dados, mas aqui está ela:"
-                    })
-                    st.json(nova_receita)
-            else:
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": "Desculpe, não consegui criar uma nova receita no momento. Por favor, tente novamente mais tarde."
-                })
+            # Adiciona a resposta ao histórico
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": response
+            })
                 
     except Exception as e:
         st.error(f"Erro ao processar mensagem: {str(e)}")
@@ -627,35 +620,47 @@ def prepare_ai_context(prompt: str) -> List[Dict]:
     - Dicas de substituições e adaptações para diferentes preferências
 
     Ao criar uma receita, sempre inclua:
-    1. Título criativo que destaque o aspecto funcional
-    2. Lista de ingredientes com quantidades precisas
-    3. Benefícios funcionais dos ingredientes principais
-    4. Modo de preparo detalhado
+    1. Um título criativo que destaque o aspecto funcional
+    2. Uma breve descrição dos benefícios e características
+    3. Lista de ingredientes com quantidades precisas
+    4. Modo de preparo detalhado e passo a passo
     5. Tempo de preparo e rendimento
     6. Dicas de substituições e variações
     7. Informações nutricionais relevantes
     8. Sugestões de harmonização e consumo
 
-    Formate a resposta em JSON com os campos:
-    {
-        "titulo": "Nome da receita",
-        "descricao": "Breve descrição dos benefícios e características",
-        "beneficios_funcionais": ["Lista de benefícios principais"],
-        "ingredientes": ["Lista com quantidades"],
-        "modo_preparo": ["Passos detalhados"],
-        "tempo_preparo": "Tempo total",
-        "porcoes": "Número de porções",
-        "dificuldade": "Nível de dificuldade",
-        "informacoes_nutricionais": {
-            "calorias": "por porção",
-            "proteinas": "em gramas",
-            "carboidratos": "em gramas",
-            "gorduras": "em gramas",
-            "fibras": "em gramas"
-        },
-        "dicas": ["Dicas de preparo e substituições"],
-        "harmonizacao": "Sugestões de consumo e acompanhamentos"
-    }
+    Formate a resposta de forma natural e amigável, como se estivesse conversando diretamente com a pessoa. Use emojis para tornar a comunicação mais acolhedora.
+
+    Exemplo de formato:
+    ✨ [Nome da Receita] ✨
+
+    [Breve descrição dos benefícios e características]
+
+    🌿 Benefícios Principais:
+    • [Lista de benefícios]
+
+    📝 Ingredientes:
+    • [Lista com quantidades]
+
+    👩‍🍳 Modo de Preparo:
+    1. [Passos detalhados]
+
+    ⏱️ Tempo de Preparo: [tempo]
+    🍽️ Rendimento: [porções]
+    📊 Dificuldade: [nível]
+
+    📊 Informações Nutricionais (por porção):
+    • Calorias: [valor]
+    • Proteínas: [valor]
+    • Carboidratos: [valor]
+    • Gorduras: [valor]
+    • Fibras: [valor]
+
+    💡 Dicas:
+    • [Lista de dicas e substituições]
+
+    🍷 Harmonização:
+    [Sugestões de consumo e acompanhamentos]
     """
     
     return [
@@ -669,11 +674,11 @@ def call_openai_api(client: OpenAI, messages: List[Dict]) -> str:
         response = client.chat.completions.create(
             model="gpt-4o-mini-2024-07-18",
             messages=messages,
-            temperature=0.7,
+            temperature=0.85,
             max_tokens=2500,
-            top_p=0.9,
-            frequency_penalty=0.2,
-            presence_penalty=0.2
+            top_p=0.95,
+            frequency_penalty=0.3,
+            presence_penalty=0.3
         )
         return response.choices[0].message.content
     except Exception as e:
