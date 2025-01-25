@@ -83,3 +83,4 @@ coverage.xml
 
 # Streamlit
 .streamlit/secrets.toml docs/
+.streamlit/secrets.toml

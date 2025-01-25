@@ -419,14 +419,36 @@ def gerar_receita(client: OpenAI, prompt: str) -> Optional[Dict]:
             
             # Valida campos obrigatórios
             campos_obrigatorios = ['titulo', 'ingredientes', 'modo_preparo']
-            if not all(campo in receita_dict for campo in campos_obrigatorios):
-                logger.error("Receita gerada não contém todos os campos obrigatórios")
+            campos_faltantes = [campo for campo in campos_obrigatorios if campo not in receita_dict]
+            
+            if campos_faltantes:
+                logger.error(f"Receita gerada não contém os campos obrigatórios: {', '.join(campos_faltantes)}")
+                logger.error(f"Resposta da API: {response}")
+                return None
+                
+            # Valida tipos de dados
+            if not isinstance(receita_dict['ingredientes'], list):
+                logger.error("Campo 'ingredientes' não é uma lista")
+                return None
+                
+            if not isinstance(receita_dict['modo_preparo'], list):
+                logger.error("Campo 'modo_preparo' não é uma lista")
+                return None
+                
+            # Valida conteúdo mínimo
+            if not receita_dict['ingredientes']:
+                logger.error("Lista de ingredientes está vazia")
+                return None
+                
+            if not receita_dict['modo_preparo']:
+                logger.error("Modo de preparo está vazio")
                 return None
                 
             return receita_dict
             
         except json.JSONDecodeError as e:
             logger.error(f"Erro ao decodificar resposta da API: {str(e)}")
+            logger.error(f"Resposta da API: {response}")
             return None
             
     except Exception as e:
@@ -647,14 +669,15 @@ def call_openai_api(client: OpenAI, messages: List[Dict]) -> str:
         response = client.chat.completions.create(
             model="gpt-4o-mini-2024-07-18",
             messages=messages,
-            temperature=0.85,
-            max_tokens=2000,
-            top_p=0.95,
-            frequency_penalty=0.3,
-            presence_penalty=0.3
+            temperature=0.7,
+            max_tokens=2500,
+            top_p=0.9,
+            frequency_penalty=0.2,
+            presence_penalty=0.2
         )
         return response.choices[0].message.content
     except Exception as e:
+        logger.error(f"Erro detalhado na chamada da API: {str(e)}")
         raise Exception(f"Erro na chamada da API: {str(e)}")
 
 def init_app(db: DatabaseInterface) -> None:
