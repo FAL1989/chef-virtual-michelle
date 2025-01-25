@@ -539,9 +539,6 @@ Basta me dizer o que você precisa! 🌟"""
     except Exception as e:
         st.error(f"Erro ao processar mensagem: {str(e)}")
         logger.error(f"Erro ao processar mensagem: {str(e)}")
-        
-    # Atualiza a interface
-    render_message_history()
 
 def generate_new_recipe(client: OpenAI, prompt: str, db: DatabaseInterface) -> str:
     """Gera uma nova receita usando a API da OpenAI"""
