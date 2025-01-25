@@ -382,6 +382,57 @@ def extract_search_terms(prompt: str) -> str:
     
     return prompt.strip()
 
+def classify_message(text: str) -> str:
+    """Classifica o tipo de mensagem do usuário"""
+    text = text.lower().strip()
+    
+    # Saudações comuns
+    greetings = ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'hey', 'ei']
+    if any(text.startswith(g) for g in greetings) and len(text.split()) <= 3:
+        return "greeting"
+        
+    # Perguntas sobre funcionalidades
+    help_patterns = ['como', 'ajuda', 'pode me ajudar', 'o que você faz', 'quais são']
+    if any(p in text for p in help_patterns):
+        return "help"
+        
+    # Busca por receitas
+    recipe_patterns = ['receita', 'como fazer', 'tem alguma', 'quero fazer', 'sabe fazer']
+    if any(p in text for p in recipe_patterns):
+        return "recipe_search"
+        
+    # Padrão: assume que é uma busca por receita
+    return "recipe_search"
+
+def gerar_receita(client: OpenAI, prompt: str) -> Optional[Dict]:
+    """Gera uma nova receita usando a API da OpenAI"""
+    try:
+        # Prepara o contexto para a IA
+        messages = prepare_ai_context(prompt)
+        
+        # Faz a chamada à API
+        response = call_openai_api(client, messages)
+        
+        try:
+            # Converte a resposta para dict
+            receita_dict = json.loads(response)
+            
+            # Valida campos obrigatórios
+            campos_obrigatorios = ['titulo', 'ingredientes', 'modo_preparo']
+            if not all(campo in receita_dict for campo in campos_obrigatorios):
+                logger.error("Receita gerada não contém todos os campos obrigatórios")
+                return None
+                
+            return receita_dict
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Erro ao decodificar resposta da API: {str(e)}")
+            return None
+            
+    except Exception as e:
+        logger.error(f"Erro ao gerar receita: {str(e)}")
+        return None
+
 def process_user_input(client, db):
     """Processa a entrada do usuário e retorna uma resposta"""
     try:
@@ -396,8 +447,37 @@ def process_user_input(client, db):
         # Adiciona a mensagem do usuário ao histórico
         st.session_state.messages.append({"role": "user", "content": prompt})
         
+        # Classifica o tipo de mensagem
+        msg_type = classify_message(prompt)
+        
+        if msg_type == "greeting":
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "Olá! 👋 Sou a Chef Michelle, especialista em gastronomia funcional. Como posso ajudar você hoje? Posso sugerir receitas saudáveis e deliciosas, dar dicas de substituições de ingredientes ou criar novas receitas personalizadas para você! 🌟"
+            })
+            return
+            
+        if msg_type == "help":
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": """Posso ajudar você de várias formas! 👩‍🍳
+
+- Buscar receitas específicas
+- Sugerir receitas com os ingredientes que você tem
+- Criar novas receitas funcionais
+- Dar dicas de substituições de ingredientes
+- Explicar benefícios nutricionais
+- Sugerir harmonizações
+
+Basta me dizer o que você precisa! 🌟"""
+            })
+            return
+        
+        # Extrai termos de busca
+        termos_busca = extract_search_terms(prompt)
+        
         # Busca receitas relacionadas
-        receitas = db.buscar_receitas_por_texto(prompt)
+        receitas = db.buscar_receitas_por_texto(termos_busca)
         
         if receitas:
             # Encontrou receitas - mostra os resultados
@@ -414,7 +494,7 @@ def process_user_input(client, db):
             # Não encontrou receitas - gera uma nova
             st.session_state.messages.append({
                 "role": "assistant", 
-                "content": "Não encontrei nenhuma receita com esses ingredientes, mas posso criar uma nova receita para você! 👩‍🍳"
+                "content": "Não encontrei nenhuma receita com esses ingredientes, mas posso criar uma nova receita para você! 👩‍🍳 Aguarde um momento..."
             })
             
             # Gera uma nova receita
@@ -442,8 +522,8 @@ def process_user_input(client, db):
                 })
                 
     except Exception as e:
-        st.error(f"Erro ao processar entrada: {str(e)}")
-        logger.error(f"Erro ao processar entrada: {str(e)}")
+        st.error(f"Erro ao processar mensagem: {str(e)}")
+        logger.error(f"Erro ao processar mensagem: {str(e)}")
         
     # Atualiza a interface
     render_message_history()
