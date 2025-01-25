@@ -326,30 +326,25 @@ class ReceitasDB(DatabaseInterface):
     def _criar_resumo_receita(self, receita: Dict) -> Optional[Dict]:
         """Cria um resumo da receita com apenas as informações essenciais"""
         try:
-            st.write("DEBUG - Criando resumo para receita:", receita)
-            
             # Extrai e valida o ID
             receita_id = receita.get('id')
-            st.write("DEBUG - ID original:", receita_id, "Tipo:", type(receita_id))
             
             # Validação do ID
             if not receita_id:  # Verifica se é None ou vazio
-                st.warning("Receita sem ID encontrada")
+                logger.warning("Receita sem ID encontrada")
                 return None
             
             # Mantém o ID no formato original
             receita_id = str(receita_id).strip()
-            st.write("DEBUG - ID validado:", receita_id)
 
             # Validação do título
             titulo = str(receita.get('titulo', '')).strip().upper()
             if not titulo:
-                st.warning(f"Receita {receita_id} sem título encontrada")
+                logger.warning(f"Receita {receita_id} sem título encontrada")
                 return None
 
             # Extrai os ingredientes para preview
             ingredientes_raw = receita.get('ingredientes', '')
-            st.write(f"DEBUG - Ingredientes raw da receita {receita_id}:", ingredientes_raw)
             
             if isinstance(ingredientes_raw, str):
                 ingredientes = [ing.strip() for ing in ingredientes_raw.split('\n') if ing.strip()][:3]
@@ -357,8 +352,6 @@ class ReceitasDB(DatabaseInterface):
                     ingredientes.append('...')
             else:
                 ingredientes = []
-            
-            st.write(f"DEBUG - Ingredientes processados da receita {receita_id}:", ingredientes)
 
             resumo = {
                 'id': receita_id,
@@ -367,39 +360,29 @@ class ReceitasDB(DatabaseInterface):
                 'preview_ingredientes': ingredientes
             }
             
-            st.write(f"DEBUG - Resumo final da receita {receita_id}:", resumo)
             return resumo
             
         except Exception as e:
-            st.error(f"Erro ao criar resumo da receita: {str(e)}")
-            st.write("DEBUG - Stack trace completo:", str(e))
+            logger.error(f"Erro ao criar resumo da receita: {str(e)}")
             return None
 
     def buscar_receita_por_id(self, receita_id: str) -> Optional[Dict]:
         """Busca uma receita específica pelo ID (UUID)"""
         try:
-            st.write("DEBUG - Iniciando busca por ID:", receita_id)
-            
             # Faz a busca no Supabase usando o ID como string
             data = self.supabase.table('receitas').select('*').eq('id', receita_id).execute()
             
-            st.write("DEBUG - Resposta do Supabase:", data.data)
-            
             if not data.data:
-                st.warning(f"Receita não encontrada: {receita_id}")
+                logger.warning(f"Receita não encontrada: {receita_id}")
                 return None
             
             # Converte para o formato do chat
             receita = self._converter_formato_db(data.data[0])
             
-            # Debug para verificar a conversão
-            st.write("DEBUG - Dados convertidos:", receita)
-            
             return receita
                 
         except Exception as e:
-            st.error(f"Erro ao buscar receita: {str(e)}")
-            st.write("DEBUG - Stack trace completo:", str(e))
+            logger.error(f"Erro ao buscar receita: {str(e)}")
             return None
 
     @staticmethod
